@@ -5,7 +5,7 @@ description: Credit the makers of free tools, code and works used on a website (
 
 # Credit
 
-Credit adds a **Credits** button to the bottom of any website. Pressing it fades the page away except for the parts made with someone else's tools (a shader behind an image effect, a UI kit's components, a font, an icon set), each labelled with the tool, its maker and a link. It runs from three pieces:
+Credit adds a small **Credits** button to the bottom of any website. Pressing it fades the page away except for the parts made with someone else's tools (a shader behind an image effect, a UI kit's components), each with a thin outline; hovering one shows its maker and a link to the original.
 
 - `credit.js`: the script (bundled in this skill at `assets/credit.js`)
 - `credits.json`: the list of credits (format in `assets/SPEC.md`)

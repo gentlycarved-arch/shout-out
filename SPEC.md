@@ -66,12 +66,16 @@ Credits that make nothing you can point to (a library, a build tool, a font used
 
 ## The button
 
-**Recommended: at the bottom of the page.** By default `credit.js` puts its Credits button centred inside the site's `<footer>`, or at the very end of the page if there's no footer. Pressing it fades the whole page to its own background colour, except for the parts made with credited tools, which stay clear with a label naming the tool and its maker. A bar of every credit opens at the bottom, in pills, with a card above it for the chosen one: what it is, its license, Show on page and Open original. Pressing it again, the ×, or Esc brings the page back.
+**Recommended: at the bottom of the page.** By default `credit.js` puts a small Credits button centred inside the site's `<footer>`, or at the very end of the page if there's no footer.
+
+Pressing it fades the page to its own background colour, except for the parts made with credited tools. Each of those keeps a thin outline. Hovering one (tapping it on a phone, or tabbing to it) shows a small pop-up with the maker's name and a link to the original. Credits with nothing to point at on the page (a font, a library) are listed in one line at the bottom. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
+
+The button shows only `name`, `author` and `url` (or `authorUrl` when there's no `url`). The other fields are there for other tools and for anyone reading the file.
 
 To choose the place yourself, mark it with `data-credit-button`:
 
 - on a `<button>` or `<a>`, that element becomes the Credits button, in the site's own style: `<button data-credit-button>Credits</button>`
-- on anything else (a `<div>`, a footer column), Credit's own button is put inside it
+- on anything else, Credit's own button is put inside it
 
 To float the button in a corner of the window, set `data-position` on the script tag.
 
@@ -84,23 +88,18 @@ Set as attributes on the `<script>` tag:
 | `data-src` | where to find credits.json | see *Where it lives* |
 | `data-position` | `bottom` (in the footer), `bottom-right`, `bottom-left`, `top-right`, `top-left` | `bottom` |
 | `data-theme` | `auto`, `light`, `dark` | `auto` |
-| `data-accent` | any CSS color, for the outlines and the active marker | `#0b6cff` |
-| `data-on-accent` | the color for text on the accent | `#ffffff` |
+| `data-accent` | the outline colour | black (white in dark mode) |
 | `data-label` | the button's text | `Credits` |
 | `data-button` | `none` hides the button, for sites that open Credits from their own code | shown |
 
-For full control, set these custom properties anywhere in the site's CSS (usually `:root`, and again for a dark theme):
+To match a site, set these custom properties anywhere in its CSS (usually `:root`, and again for a dark theme):
 
 | Property | What it sets | Default |
 |---|---|---|
 | `--credit-fade-color` | the colour the page fades to | the page's background |
 | `--credit-fade` | how far it fades, 0 to 1 | `0.9` |
-| `--credit-accent`, `--credit-on-accent` | outlines, check badges, the active marker and the Open button, and their text | blue, white |
-| `--credit-bg` | the card and the labels | white (dark in dark mode) |
-| `--credit-tray`, `--credit-chip`, `--credit-chip-active` | the pill trays, their pills, and the chosen pill | light greys |
-| `--credit-fg`, `--credit-muted`, `--credit-line`, `--credit-shadow` | text, quieter text, hairlines and shadows | |
-| `--credit-font`, `--credit-radius`, `--credit-card-radius` | the type, pill rounding and card rounding | system sans, 999px, 28px |
-
-The button, list, outlines and labels can also be styled with `credit-button::part(button)`, `credit-layer::part(panel)`, `::part(outline)` and `::part(label)`.
+| `--credit-accent` | the outlines | black / white |
+| `--credit-bg`, `--credit-fg`, `--credit-muted` | the button and pop-ups, their text, and the link text | white and black (dark in dark mode) |
+| `--credit-font`, `--credit-radius` | the type and rounding of the button | system sans, 999px |
 
 From the page's own scripts: `Credit.open()`, `Credit.close()`, `Credit.toggle()`, `Credit.isOpen`, `Credit.credits`. The document gets a `credit:toggle` event each time. A link to `page.html#credits` opens the page with credits already showing.
