@@ -1,6 +1,6 @@
 // Shared by find.mjs and build-index.mjs: read a site's credits, and match them against a creator.
 
-const UA = 'CreditFinder/0.1 (+https://github.com/gentlycarved-arch/credit)';
+const UA = 'FlowersFinder/0.1 (+https://github.com/gentlycarved-arch/flowers)';
 
 async function get(url, timeoutMs = 15000) {
   const res = await fetch(url, { headers: { 'user-agent': UA, accept: 'text/html,application/json;q=0.9,*/*;q=0.5' }, redirect: 'follow', signal: AbortSignal.timeout(timeoutMs) });

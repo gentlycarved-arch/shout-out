@@ -1,7 +1,7 @@
-/*! Credit 0.4 · a Credits button that fades a website back to the parts made with other people's tools · MIT */
+/*! Flowers 0.1 · give the makers their flowers: a button that fades a website back to the parts made with other people's tools · MIT */
 (() => {
   'use strict';
-  if (window.Credit) return;
+  if (window.Flowers) return;
 
   const script = document.currentScript;
   const opt = (name, fallback) => (script && script.getAttribute('data-' + name)) || fallback;
@@ -17,7 +17,7 @@
     const link = document.querySelector('link[rel~="credits"]');
     const url = new URL(src || (link && link.getAttribute('href')) || 'credits.json', document.baseURI).href;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Credit: could not load ' + url + ' (' + res.status + ')');
+    if (!res.ok) throw new Error('Flowers: could not load ' + url + ' (' + res.status + ')');
     return res.json();
   }
 
@@ -42,7 +42,7 @@
       if (el.getAttribute('data-credit').split(/\s+/).includes(credit.id)) found.add(el);
     });
     credit.selectors.forEach((s) => {
-      try { document.querySelectorAll(s).forEach((el) => found.add(el)); } catch (e) { console.warn('Credit: bad selector', s); }
+      try { document.querySelectorAll(s).forEach((el) => found.add(el)); } catch (e) { console.warn('Flowers: bad selector', s); }
     });
     return [...found];
   }
@@ -56,21 +56,21 @@
   }
 
   // ---------- styles ----------
-  // Sites set the --credit-* properties anywhere (usually :root).
+  // Sites set the --flowers-* properties anywhere (usually :root).
 
   const CSS = `
 :host { all: initial; }
 :host {
-  --_accent: var(--credit-accent, #ffffff);
-  --_bg: var(--credit-bg, #ffffff);
-  --_fg: var(--credit-fg, #111111);
-  --_muted: var(--credit-muted, #6b6b6b);
-  --_font: var(--credit-font, "Helvetica Neue", Helvetica, Arial, sans-serif);
-  --_r: var(--credit-radius, 999px);
+  --_accent: var(--flowers-accent, #ffffff);
+  --_bg: var(--flowers-bg, #ffffff);
+  --_fg: var(--flowers-fg, #111111);
+  --_muted: var(--flowers-muted, #6b6b6b);
+  --_font: var(--flowers-font, "Helvetica Neue", Helvetica, Arial, sans-serif);
+  --_r: var(--flowers-radius, 999px);
 }
 /* the button sits on the site, so it follows the site's light or dark; the pop-ups sit on the dark fade, so they stay white */
-@media (prefers-color-scheme: dark) { :host(:not([theme="light"])) .btn { --_bg: var(--credit-bg, #1c1c1c); --_fg: var(--credit-fg, #f2f2f2); } }
-:host([theme="dark"]) .btn { --_bg: var(--credit-bg, #1c1c1c); --_fg: var(--credit-fg, #f2f2f2); }
+@media (prefers-color-scheme: dark) { :host(:not([theme="light"])) .btn { --_bg: var(--flowers-bg, #1c1c1c); --_fg: var(--flowers-fg, #f2f2f2); } }
+:host([theme="dark"]) .btn { --_bg: var(--flowers-bg, #1c1c1c); --_fg: var(--flowers-fg, #f2f2f2); }
 * { box-sizing: border-box; }
 .root { font-family: var(--_font); font-size: 13px; line-height: 1.3; color: var(--_fg); -webkit-font-smoothing: antialiased; }
 a { color: inherit; text-decoration: none; }
@@ -91,15 +91,15 @@ a { color: inherit; text-decoration: none; }
 .tag {
   position: fixed; z-index: 2147483001; max-width: min(260px, calc(100vw - 16px));
   display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 8px;
-  background: var(--credit-popup-bg, #ffffff); color: var(--credit-popup-fg, #111111);
+  background: var(--flowers-popup-bg, #ffffff); color: var(--flowers-popup-fg, #111111);
   opacity: 0; visibility: hidden; transform: translateY(3px); transition: opacity .15s, transform .15s, visibility 0s .15s;
 }
 .mark.show .tag, .mark:focus-within .tag { opacity: 1; visibility: visible; transform: none; transition: opacity .15s, transform .15s; }
 .tag strong { font-weight: 700; }
-.tag a { color: var(--credit-popup-muted, #6b6b6b); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tag a:hover, .tag a:focus-visible { color: var(--credit-popup-fg, #111111); text-decoration: underline; }
-.also { position: fixed; z-index: 2147483001; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 6px 14px; border-radius: var(--_r); background: var(--credit-popup-bg, #ffffff); color: var(--credit-popup-muted, #6b6b6b); text-align: center; animation: in .4s ease .08s both; }
-.also a { color: var(--credit-popup-fg, #111111); }
+.tag a { color: var(--flowers-popup-muted, #6b6b6b); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag a:hover, .tag a:focus-visible { color: var(--flowers-popup-fg, #111111); text-decoration: underline; }
+.also { position: fixed; z-index: 2147483001; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 6px 14px; border-radius: var(--_r); background: var(--flowers-popup-bg, #ffffff); color: var(--flowers-popup-muted, #6b6b6b); text-align: center; animation: in .4s ease .08s both; }
+.also a { color: var(--flowers-popup-fg, #111111); }
 .also a:hover { text-decoration: underline; }
 @keyframes in { from { opacity: 0; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -125,7 +125,7 @@ a { color: inherit; text-decoration: none; }
     const host = document.createElement(name);
     const theme = opt('theme', 'auto');
     if (theme !== 'auto') host.setAttribute('theme', theme);
-    if (opt('accent')) host.style.setProperty('--credit-accent', opt('accent'));
+    if (opt('accent')) host.style.setProperty('--flowers-accent', opt('accent'));
     const shadow = host.attachShadow({ mode: 'open' });
     shadow.append(h('style', {}, CSS));
     return { host, shadow };
@@ -136,23 +136,23 @@ a { color: inherit; text-decoration: none; }
   let credits = [];
   let active = false;
   let layerShadow, fade, fadeFill, holes, layer, live;
-  let triggers = [];   // every element that turns Credits on and off
+  let triggers = [];   // every element that turns Flowers on and off
   let keepLit = [];    // the button stays clear while the page fades
   let marks = [];      // { credit, el, box, tag, hole }
   let frame = 0;
 
   // ---------- the button ----------
   // Recommended: at the bottom of the page (the default, inside the site's footer).
-  // An element marked data-credit-button chooses the place: a <button> or <a> there becomes the button itself,
-  // anything else gets Credit's button inside it. data-position="bottom-right" etc. floats it in a corner.
+  // An element marked data-flowers-button chooses the place: a <button> or <a> there becomes the button itself,
+  // anything else gets the Flowers button inside it. data-position="bottom-right" etc. floats it in a corner.
 
   function makeButton() {
-    return h('button', { class: 'btn', type: 'button', part: 'button', 'aria-pressed': 'false', onclick: toggle }, opt('label', 'Credits'));
+    return h('button', { class: 'btn', type: 'button', part: 'button', 'aria-pressed': 'false', onclick: toggle }, opt('label', 'Flowers'));
   }
 
   function placeButtons(rootEl) {
     if (opt('button') === 'none') return;
-    const own = document.querySelectorAll('[data-credit-button]');
+    const own = document.querySelectorAll('[data-flowers-button]');
     if (own.length) {
       own.forEach((el) => {
         if (el.matches('button, a, [role="button"]')) {
@@ -160,7 +160,7 @@ a { color: inherit; text-decoration: none; }
           el.addEventListener('click', (e) => { e.preventDefault(); toggle(); });
           triggers.push(el);
         } else {
-          const { host, shadow } = shadowHost('credit-button');
+          const { host, shadow } = shadowHost('flowers-button');
           const b = makeButton();
           shadow.append(h('div', { class: 'root' }, b));
           el.append(host);
@@ -178,7 +178,7 @@ a { color: inherit; text-decoration: none; }
       rootEl.append(b);
       return;
     }
-    const { host, shadow } = shadowHost('credit-button');
+    const { host, shadow } = shadowHost('flowers-button');
     shadow.append(h('div', { class: 'root inline' }, b));
     const footers = [...document.querySelectorAll('footer')].filter((f) => !f.closest('article, aside, section, dialog'));
     (footers[footers.length - 1] || document.body).append(host);
@@ -188,7 +188,7 @@ a { color: inherit; text-decoration: none; }
   // ---------- the layer ----------
 
   function build() {
-    const { host, shadow } = shadowHost('credit-layer');
+    const { host, shadow } = shadowHost('flowers-layer');
     layerShadow = shadow;
     const rootEl = h('div', { class: 'root' });
     live = h('div', { class: 'sr', 'aria-live': 'polite' });
@@ -196,7 +196,7 @@ a { color: inherit; text-decoration: none; }
     fade = document.createElementNS(ns, 'svg');
     fade.setAttribute('class', 'fade');
     fade.setAttribute('aria-hidden', 'true');
-    fade.innerHTML = '<defs><mask id="credit-holes" maskUnits="userSpaceOnUse"><rect x="0" y="0" width="100%" height="100%" fill="white"/><g class="holes"></g></mask></defs><rect class="fill" x="0" y="0" width="100%" height="100%" mask="url(#credit-holes)"/>';
+    fade.innerHTML = '<defs><mask id="flowers-holes" maskUnits="userSpaceOnUse"><rect x="0" y="0" width="100%" height="100%" fill="white"/><g class="holes"></g></mask></defs><rect class="fill" x="0" y="0" width="100%" height="100%" mask="url(#flowers-holes)"/>';
     // hovering (or tapping) a credited part shows who made it; clicking anywhere else brings the page back
     fade.addEventListener('pointermove', (e) => { const m = hit(e); fade.style.cursor = m ? 'default' : 'pointer'; if (e.pointerType !== 'touch') hover(m); });
     fade.addEventListener('pointerleave', () => hover(null));
@@ -220,7 +220,7 @@ a { color: inherit; text-decoration: none; }
     marks = [];
     for (const credit of credits) {
       for (const el of targetsOf(credit)) {
-        const who = credit.author || credit.name;
+        const who = credit.author ? 'Flowers to ' + credit.author : credit.name;
         const box = h('div', { class: 'box', part: 'outline', tabindex: '0', role: 'img', 'aria-label': 'Made with ' + credit.name + (credit.author ? ' by ' + credit.author : '') });
         const tag = h('div', { class: 'tag', part: 'label' }, h('strong', {}, who),
           credit.url ? h('a', { href: credit.url, target: '_blank', rel: 'noopener' }, (credit.author ? credit.name : 'Original') + ' ↗') : null);
@@ -256,7 +256,7 @@ a { color: inherit; text-decoration: none; }
   // something on top (a pop-up, a menu) hides the part, so it isn't lit through it
   function covered(el, r, vw, vh) {
     const x = Math.min(Math.max(r.left + r.width / 2, 1), vw - 1), y = Math.min(Math.max(r.top + r.height / 2, 1), vh - 1);
-    const hit = document.elementsFromPoint(x, y).find((e) => e.localName !== 'credit-layer');
+    const hit = document.elementsFromPoint(x, y).find((e) => e.localName !== 'flowers-layer');
     if (!hit || hit === el || el.contains(hit) || hit.contains(el)) return false;
     const svg = el.ownerSVGElement;
     return !(svg && svg.contains(hit));
@@ -292,8 +292,8 @@ a { color: inherit; text-decoration: none; }
     if (active || !layerShadow) return;
     active = true;
     clearTimeout(hideTimer);
-    fadeFill.style.fill = 'var(--credit-fade-color, #0a0a0a)';
-    fadeFill.style.fillOpacity = 'var(--credit-fade, 0.82)';
+    fadeFill.style.fill = 'var(--flowers-fade-color, #0a0a0a)';
+    fadeFill.style.fillOpacity = 'var(--flowers-fade, 0.82)';
     mark();
     place();
     fade.style.display = '';
@@ -301,8 +301,8 @@ a { color: inherit; text-decoration: none; }
     pressed(true);
     loop();
     const shown = credits.filter((c) => marks.some((m) => m.credit === c && visibleRect(m.el))).length;
-    live.textContent = 'Credits on. ' + shown + ' of ' + credits.length + ' shown on this page. Press Escape to close.';
-    document.dispatchEvent(new CustomEvent('credit:toggle', { detail: { open: true } }));
+    live.textContent = 'Flowers on. ' + shown + ' of ' + credits.length + ' shown on this page. Press Escape to close.';
+    document.dispatchEvent(new CustomEvent('flowers:toggle', { detail: { open: true } }));
   }
 
   function close() {
@@ -318,15 +318,15 @@ a { color: inherit; text-decoration: none; }
       marks = [];
     }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 420);
     pressed(false);
-    live.textContent = 'Credits off.';
-    document.dispatchEvent(new CustomEvent('credit:toggle', { detail: { open: false } }));
+    live.textContent = 'Flowers off.';
+    document.dispatchEvent(new CustomEvent('flowers:toggle', { detail: { open: false } }));
   }
 
   function toggle() { active ? close() : open(); }
 
   addEventListener('keydown', (e) => { if (e.key === 'Escape' && active) close(); });
 
-  window.Credit = {
+  window.Flowers = {
     open, close, toggle,
     get credits() { return credits.slice(); },
     get isOpen() { return active; },
@@ -336,7 +336,7 @@ a { color: inherit; text-decoration: none; }
     try { credits = normalize(await load()); } catch (err) { console.warn(err.message || err); return; }
     if (!credits.length) return;
     build();
-    if (location.hash === '#credits') open();
+    if (location.hash === '#flowers') open();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);

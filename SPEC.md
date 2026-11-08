@@ -1,12 +1,18 @@
-# credits.json, version 0.1
+# Flowers
 
-A small, open format for listing the tools, code and works a website was built with, and for marking which parts of the page each one made. `credit.js` reads it to draw the Credits button and highlights, but the format doesn't depend on the script: any tool can read it.
+Give the makers their flowers. When a website uses someone's shader, UI kit, font or snippet, Flowers shows it: press the Flowers button and the page fades to dark, except for the parts made with other people's tools, each with a thin outline. Hover one to see who made it and a link to the original.
+
+The credits themselves are kept in an open, plain format, `credits.json`, described below, so anything can read them, not only Flowers.
+
+## credits.json, version 0.1
+
+A small, open format for listing the tools, code and works a website was built with, and for marking which parts of the page each one made. **Flowers** (`flowers.js`) reads it to give the makers their flowers on the page, but the format doesn't depend on the script: any tool can read it.
 
 ## Where it lives
 
 A site publishes its credits in one of these ways. Readers check them in this order:
 
-1. `data-src` on the script tag: `<script src="credit.js" data-src="/credits.json" defer></script>`
+1. `data-src` on the script tag: `<script src="flowers.js" data-src="/credits.json" defer></script>`
 2. In the page: `<script type="application/credits+json">{ … }</script>`, for site builders that can't host extra files
 3. A link in the `<head>`: `<link rel="credits" href="/credits.json">`
 4. `credits.json` next to the page
@@ -66,16 +72,16 @@ Credits that make nothing you can point to (a library, a build tool, a font used
 
 ## The button
 
-**Recommended: at the bottom of the page.** By default `credit.js` puts a small Credits button centred inside the site's `<footer>`, or at the very end of the page if there's no footer.
+**Recommended: at the bottom of the page.** By default `flowers.js` puts a small Flowers button centred inside the site's `<footer>`, or at the very end of the page if there's no footer.
 
-Pressing it fades the page to dark, except for the parts made with credited tools. Each of those keeps a thin outline. Hovering one (tapping it on a phone, or tabbing to it) shows a small pop-up with the maker's name and a link to the original. Credits with nothing to point at on the page (a font, a library) are listed in one line at the bottom. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
+Pressing it fades the page to dark, except for the parts made with credited tools. Each of those keeps a thin outline. Hovering one (tapping it on a phone, or tabbing to it) shows a small pop-up, "Flowers to" the maker,'s name and a link to the original. Credits with nothing to point at on the page (a font, a library) are listed in one line at the bottom. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
 
 The button shows only `name`, `author` and `url` (or `authorUrl` when there's no `url`). The other fields are there for other tools and for anyone reading the file.
 
-To choose the place yourself, mark it with `data-credit-button`:
+To choose the place yourself, mark it with `data-flowers-button`:
 
-- on a `<button>` or `<a>`, that element becomes the Credits button, in the site's own style: `<button data-credit-button>Credits</button>`
-- on anything else, Credit's own button is put inside it
+- on a `<button>` or `<a>`, that element becomes the Flowers button, in the site's own style: `<button data-flowers-button>Flowers</button>`
+- on anything else, the Flowers button is put inside it
 
 To float the button in a corner of the window, set `data-position` on the script tag.
 
@@ -89,21 +95,21 @@ Set as attributes on the `<script>` tag:
 | `data-position` | `bottom` (in the footer), `bottom-right`, `bottom-left`, `top-right`, `top-left` | `bottom` |
 | `data-theme` | `auto`, `light`, `dark` | `auto` |
 | `data-accent` | the outline colour | white |
-| `data-label` | the button's text | `Credits` |
-| `data-button` | `none` hides the button, for sites that open Credits from their own code | shown |
+| `data-label` | the button's text | `Flowers` |
+| `data-button` | `none` hides the button, for sites that open Flowers from their own code | shown |
 
 To match a site, set these custom properties anywhere in its CSS (usually `:root`, and again for a dark theme):
 
 | Property | What it sets | Default |
 |---|---|---|
-| `--credit-fade-color` | the colour the page fades to | near-black `#0a0a0a` |
-| `--credit-fade` | how far it fades, 0 to 1 | `0.82` |
-| `--credit-accent` | the outlines | white |
-| `--credit-bg`, `--credit-fg` | the button and its text | white and black (dark in dark mode) |
-| `--credit-popup-bg`, `--credit-popup-fg`, `--credit-popup-muted` | the hover pop-ups, their text, and the link | white, black, grey |
-| `--credit-font`, `--credit-radius` | the type, and the rounding of the button | Helvetica, 999px |
+| `--flowers-fade-color` | the colour the page fades to | near-black `#0a0a0a` |
+| `--flowers-fade` | how far it fades, 0 to 1 | `0.82` |
+| `--flowers-accent` | the outlines | white |
+| `--flowers-bg`, `--flowers-fg` | the button and its text | white and black (dark in dark mode) |
+| `--flowers-popup-bg`, `--flowers-popup-fg`, `--flowers-popup-muted` | the hover pop-ups, their text, and the link | white, black, grey |
+| `--flowers-font`, `--flowers-radius` | the type, and the rounding of the button | Helvetica, 999px |
 
-From the page's own scripts: `Credit.open()`, `Credit.close()`, `Credit.toggle()`, `Credit.isOpen`, `Credit.credits`. The document gets a `credit:toggle` event each time. A link to `page.html#credits` opens the page with credits already showing.
+From the page's own scripts: `Flowers.open()`, `Flowers.close()`, `Flowers.toggle()`, `Flowers.isOpen`, `Flowers.credits`. The document gets a `flowers:toggle` event each time. A link to `page.html#flowers` opens the page with credits already showing.
 
 ## Finding where your work is credited
 

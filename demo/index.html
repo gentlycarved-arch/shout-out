@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Credit demo</title>
+<title>Flowers demo</title>
 <style>
   :root { --bg: #f4f1ea; --fg: #1d1b18; --muted: #6b665d; --line: #d9d3c7; --card: #fffdf8; }
   @media (prefers-color-scheme: dark) { :root { --bg: #151413; --fg: #efebe3; --muted: #a39d92; --line: #34312d; --card: #1e1d1b; } }
@@ -62,8 +62,8 @@
 </head>
 <body>
 <main>
-  <h1>Credit</h1>
-  <p class="lede">A Credits button for any website. Press it (at the bottom of the page) and the page fades away, except for the parts made with other people's free tools, each with a thin outline. Hover one to see who made it.</p>
+  <h1>Flowers</h1>
+  <p class="lede">Give the makers their flowers. A Flowers button for any website. Press it (at the bottom of the page) and the page fades away, except for the parts made with other people's free tools, each with a thin outline. Hover one to see who made it.</p>
 
   <canvas id="aurora" data-credit="aurora" aria-label="A moving colour gradient"></canvas>
 
@@ -89,12 +89,12 @@
 
   <h3>Add it to a site</h3>
 <pre>&lt;link rel="credits" href="/credits.json"&gt;
-&lt;script src="credit.js" defer&gt;&lt;/script&gt;
+&lt;script src="flowers.js" defer&gt;&lt;/script&gt;
 
 &lt;img src="hero.webp" data-credit="aurora" alt="…"&gt;</pre>
   <p class="hint">The credits on this page are made-up examples. The format is in SPEC.md.</p>
 </main>
-<footer style="border-top:1px solid var(--line);max-width:860px;margin:0 auto;padding:8px 16px 32px;color:var(--muted);font-size:15px;text-align:center">A demo of Credit</footer>
+<footer style="border-top:1px solid var(--line);max-width:860px;margin:0 auto;padding:8px 16px 32px;color:var(--muted);font-size:15px;text-align:center">A demo of Flowers</footer>
 
 <script>
   // a small stand-in for a credited shader, so the demo has something live to highlight
@@ -112,6 +112,6 @@
   }
   requestAnimationFrame(draw);
 </script>
-<script src="../credit.js" defer></script>
+<script src="../flowers.js" defer></script>
 </body>
 </html>
