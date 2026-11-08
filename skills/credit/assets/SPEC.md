@@ -46,7 +46,7 @@ The `<link rel="credits">` line is recommended even when the script isn't used, 
 | `authorUrl` | no | Where the author lives online (`http` or `https` only) |
 | `url` | no | The original: the post, repo, page or file where it was shared (`http` or `https` only) |
 | `license` | no | The license or terms, e.g. `MIT`, `CC BY 4.0`, `Figma Community`, `free to use` |
-| `kind` | no | What it is: `shader`, `font`, `library`, `image`, `icon`, `animation`, `template`, `code`, `music` and so on |
+| `kind` | no | What it is: `shader`, `ui` (a UI kit, component or interface tool), `font`, `library`, `image`, `icon`, `animation`, `template`, `code`, `music` and so on |
 | `note` | no | How the site used it, in one sentence |
 | `selectors` | no | CSS selectors for the parts of the page it made, for sites that can't add attributes to their markup |
 
@@ -64,6 +64,17 @@ An element made with several tools lists them all, separated by spaces: `data-cr
 
 Credits that make nothing you can point to (a library, a build tool, a font used everywhere) need no tag. They appear in the list but aren't highlighted.
 
+## The button
+
+**Recommended: at the bottom of the page.** By default `credit.js` puts its Credits button centred inside the site's `<footer>`, or at the very end of the page if there's no footer. Pressing it fades the whole page to its own background colour, except for the parts made with credited tools, which stay clear with a label naming the tool and its maker. The list of credits opens beside them. Pressing it again, the ×, or Esc brings the page back.
+
+To choose the place yourself, mark it with `data-credit-button`:
+
+- on a `<button>` or `<a>`, that element becomes the Credits button, in the site's own style: `<button data-credit-button>Credits</button>`
+- on anything else (a `<div>`, a footer column), Credit's own button is put inside it
+
+To float the button in a corner of the window, set `data-position` on the script tag.
+
 ## The script's options
 
 Set as attributes on the `<script>` tag:
@@ -71,13 +82,23 @@ Set as attributes on the `<script>` tag:
 | Attribute | Values | Default |
 |---|---|---|
 | `data-src` | where to find credits.json | see *Where it lives* |
-| `data-position` | `bottom-right`, `bottom-left`, `top-right`, `top-left` | `bottom-right` |
+| `data-position` | `bottom` (in the footer), `bottom-right`, `bottom-left`, `top-right`, `top-left` | `bottom` |
 | `data-theme` | `auto`, `light`, `dark` | `auto` |
-| `data-accent` | any CSS color, for the highlights and labels | `#ffd84d` |
+| `data-accent` | any CSS color, for the outlines and labels | `#ffd84d` |
 | `data-on-accent` | the color for text on the accent | `#141414` |
 | `data-label` | the button's text | `Credits` |
-| `data-button` | `none` hides the button, for sites with their own link | shown |
+| `data-button` | `none` hides the button, for sites that open Credits from their own code | shown |
 
-For full control, set custom properties on the `credit-layer` element in the site's own CSS: `--credit-accent`, `--credit-on-accent`, `--credit-bg`, `--credit-fg`, `--credit-muted`, `--credit-line`, `--credit-dim`, `--credit-font`, `--credit-radius`. The button, panel, outlines and labels can also be styled with `credit-layer::part(button)`, `::part(panel)`, `::part(outline)` and `::part(label)`.
+For full control, set these custom properties anywhere in the site's CSS (usually `:root`, and again for a dark theme):
+
+| Property | What it sets | Default |
+|---|---|---|
+| `--credit-fade-color` | the colour the page fades to | the page's background |
+| `--credit-fade` | how far it fades, 0 to 1 | `0.9` |
+| `--credit-accent`, `--credit-on-accent` | outlines and labels, and their text | yellow, near-black |
+| `--credit-bg`, `--credit-fg`, `--credit-muted`, `--credit-line` | the button and the list | white and black (dark in dark mode) |
+| `--credit-font`, `--credit-radius` | the type and corner rounding of the button and list | system sans, 10px |
+
+The button, list, outlines and labels can also be styled with `credit-button::part(button)`, `credit-layer::part(panel)`, `::part(outline)` and `::part(label)`.
 
 From the page's own scripts: `Credit.open()`, `Credit.close()`, `Credit.toggle()`, `Credit.isOpen`, `Credit.credits`. The document gets a `credit:toggle` event each time. A link to `page.html#credits` opens the page with credits already showing.

@@ -1,4 +1,4 @@
-/*! Credit 0.1 · a Credits button that highlights the parts of a website made with other people's tools · MIT */
+/*! Credit 0.2 · a Credits button that fades a website back to the parts made with other people's tools · MIT */
 (() => {
   'use strict';
   if (window.Credit) return;
@@ -52,99 +52,111 @@
   }
 
   function visibleRect(el) {
-    if (!el.isConnected) return null;
+    if (!el || !el.isConnected) return null;
     if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return null;
     const r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) return null;
     return r;
   }
 
-  // ---------- interface ----------
+  // the colour the page fades to: the page's own background, so it reads as the page fading away
+  function pageColor() {
+    for (const el of [document.body, document.documentElement]) {
+      const c = getComputedStyle(el).backgroundColor;
+      if (c && c !== 'transparent' && !/rgba\(.*,\s*0\)$/.test(c)) return c;
+    }
+    return '#ffffff';
+  }
+
+  // ---------- styles (shared by the layer and the in-page button) ----------
+  // Sites set the public --credit-* properties anywhere (usually :root); the internal --_ ones fall back to the defaults.
 
   const CSS = `
 :host { all: initial; }
 :host {
-  --credit-accent: #ffd84d;
-  --credit-on-accent: #141414;
-  --credit-bg: #ffffff;
-  --credit-fg: #141414;
-  --credit-muted: #5f5f5f;
-  --credit-line: rgba(0,0,0,.12);
-  --credit-dim: rgba(12,12,12,.55);
-  --credit-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --credit-radius: 10px;
+  --_accent: var(--credit-accent, #ffd84d);
+  --_on-accent: var(--credit-on-accent, #141414);
+  --_bg: var(--credit-bg, #ffffff);
+  --_fg: var(--credit-fg, #141414);
+  --_muted: var(--credit-muted, #5f5f5f);
+  --_line: var(--credit-line, rgba(0,0,0,.12));
+  --_font: var(--credit-font, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  --_radius: var(--credit-radius, 10px);
 }
 @media (prefers-color-scheme: dark) {
   :host(:not([theme="light"])) {
-    --credit-bg: #1c1c1c; --credit-fg: #f2f2f2; --credit-muted: #a8a8a8;
-    --credit-line: rgba(255,255,255,.14); --credit-dim: rgba(0,0,0,.62);
+    --_bg: var(--credit-bg, #1c1c1c); --_fg: var(--credit-fg, #f2f2f2);
+    --_muted: var(--credit-muted, #a8a8a8); --_line: var(--credit-line, rgba(255,255,255,.14));
   }
 }
 :host([theme="dark"]) {
-  --credit-bg: #1c1c1c; --credit-fg: #f2f2f2; --credit-muted: #a8a8a8;
-  --credit-line: rgba(255,255,255,.14); --credit-dim: rgba(0,0,0,.62);
+  --_bg: var(--credit-bg, #1c1c1c); --_fg: var(--credit-fg, #f2f2f2);
+  --_muted: var(--credit-muted, #a8a8a8); --_line: var(--credit-line, rgba(255,255,255,.14));
 }
 * { box-sizing: border-box; }
-.root { font-family: var(--credit-font); font-size: 14px; line-height: 1.4; color: var(--credit-fg); }
+.root { font-family: var(--_font); font-size: 14px; line-height: 1.4; color: var(--_fg); }
 a { color: inherit; }
 button { font: inherit; color: inherit; cursor: pointer; }
-:focus-visible { outline: 2px solid var(--credit-accent); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--_accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
 
 .btn {
-  position: fixed; z-index: 2147483001; display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 14px 9px 12px; border: 1px solid var(--credit-line); border-radius: 999px;
-  background: var(--credit-bg); color: var(--credit-fg); box-shadow: 0 2px 10px rgba(0,0,0,.12);
-  font-weight: 600; letter-spacing: .01em;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px 8px 12px; border: 1px solid var(--_line); border-radius: 999px;
+  background: var(--_bg); color: var(--_fg); font-weight: 600; letter-spacing: .01em;
 }
 .btn .mark { width: 16px; height: 16px; flex: none; }
-.btn .count { min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--credit-accent); color: var(--credit-on-accent); font-size: 12px; text-align: center; }
-.btn[aria-pressed="true"] { background: var(--credit-accent); color: var(--credit-on-accent); border-color: transparent; }
-.btn[aria-pressed="true"] .count { background: var(--credit-on-accent); color: var(--credit-accent); }
+.btn .count { min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--_accent); color: var(--_on-accent); font-size: 12px; text-align: center; }
+.btn[aria-pressed="true"] { background: var(--_accent); color: var(--_on-accent); border-color: transparent; }
+.btn[aria-pressed="true"] .count { background: var(--_on-accent); color: var(--_accent); }
+.inline { display: flex; justify-content: center; padding: 24px 16px; }
+.float .btn { position: fixed; z-index: 2147483001; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
 .pos-br .btn { right: 16px; bottom: 16px; } .pos-bl .btn { left: 16px; bottom: 16px; }
 .pos-tr .btn { right: 16px; top: 16px; }    .pos-tl .btn { left: 16px; top: 16px; }
 
-.dim { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 2147483000; pointer-events: none; }
-.dim rect.fill { fill: var(--credit-dim); }
-.box { position: fixed; z-index: 2147483000; pointer-events: none; border: 2px solid var(--credit-accent); border-radius: 4px; }
+.fade { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 2147483000; pointer-events: none; opacity: 0; transition: opacity .45s ease; }
+.fade.on { opacity: 1; }
+.box { position: fixed; z-index: 2147483000; pointer-events: none; border: 1.5px solid var(--_accent); border-radius: 4px; animation: appear .45s ease both; }
 .box.flash { animation: flash .9s ease 2; }
-@keyframes flash { 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--credit-accent) 45%, transparent); } }
+@keyframes appear { from { opacity: 0; } }
+@keyframes flash { 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--_accent) 45%, transparent); } }
 .tag {
   position: fixed; z-index: 2147483001; max-width: min(320px, calc(100vw - 16px));
   display: flex; flex-direction: column; gap: 1px; padding: 6px 10px; border-radius: 6px;
-  background: var(--credit-accent); color: var(--credit-on-accent); text-decoration: none;
-  box-shadow: 0 2px 8px rgba(0,0,0,.18); font-size: 13px;
+  background: var(--_accent); color: var(--_on-accent); text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,.14); font-size: 13px; animation: appear .45s ease .1s both;
 }
 .tag strong { font-weight: 700; }
 .tag span { opacity: .85; }
 .tag:hover strong, .tag:focus-visible strong { text-decoration: underline; }
-.tag:focus-visible { outline-color: var(--credit-fg); }
+.tag:focus-visible { outline-color: var(--_fg); }
 
 .panel {
   position: fixed; z-index: 2147483001; width: min(360px, calc(100vw - 32px)); max-height: min(70vh, 560px);
-  display: flex; flex-direction: column; background: var(--credit-bg); color: var(--credit-fg);
-  border: 1px solid var(--credit-line); border-radius: var(--credit-radius); box-shadow: 0 10px 40px rgba(0,0,0,.25);
+  display: flex; flex-direction: column; background: var(--_bg); color: var(--_fg);
+  border: 1px solid var(--_line); border-radius: var(--_radius); box-shadow: 0 10px 40px rgba(0,0,0,.18);
+  right: 16px; bottom: 16px; animation: appear .3s ease both;
 }
-.pos-br .panel { right: 16px; bottom: 68px; } .pos-bl .panel { left: 16px; bottom: 68px; }
-.pos-tr .panel { right: 16px; top: 68px; }    .pos-tl .panel { left: 16px; top: 68px; }
-.head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 16px 10px; border-bottom: 1px solid var(--credit-line); }
+.pos-br .panel { bottom: 68px; } .pos-bl .panel { left: 16px; right: auto; bottom: 68px; }
+.pos-tr .panel { top: 68px; bottom: auto; } .pos-tl .panel { left: 16px; right: auto; top: 68px; bottom: auto; }
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 16px 10px; border-bottom: 1px solid var(--_line); }
 .head h2 { margin: 0; font-size: 15px; font-weight: 700; }
-.head p { margin: 2px 0 0; color: var(--credit-muted); font-size: 12px; }
-.close { flex: none; border: 0; background: none; padding: 2px 6px; font-size: 18px; line-height: 1; color: var(--credit-muted); border-radius: 4px; }
+.head p { margin: 2px 0 0; color: var(--_muted); font-size: 12px; }
+.close { flex: none; border: 0; background: none; padding: 2px 6px; font-size: 18px; line-height: 1; color: var(--_muted); border-radius: 4px; }
 .list { list-style: none; margin: 0; padding: 4px 0; overflow: auto; }
-.item { padding: 10px 16px; border-bottom: 1px solid var(--credit-line); }
+.item { padding: 10px 16px; border-bottom: 1px solid var(--_line); }
 .item:last-child { border-bottom: 0; }
 .item .name { font-weight: 650; text-decoration: none; }
 .item a.name:hover, .item a.name:focus-visible { text-decoration: underline; }
-.item .by { color: var(--credit-muted); }
-.item .meta { margin-top: 2px; color: var(--credit-muted); font-size: 12px; }
+.item .by { color: var(--_muted); }
+.item .meta { margin-top: 2px; color: var(--_muted); font-size: 12px; }
 .item .note { margin: 4px 0 0; }
-.item .show { margin-top: 6px; padding: 3px 9px; border: 1px solid var(--credit-line); border-radius: 999px; background: none; font-size: 12px; }
-.item .show:hover { background: var(--credit-accent); color: var(--credit-on-accent); border-color: transparent; }
-.item .off { margin-top: 6px; color: var(--credit-muted); font-size: 12px; }
-.foot { padding: 8px 16px 12px; border-top: 1px solid var(--credit-line); font-size: 12px; color: var(--credit-muted); }
+.item .show { margin-top: 6px; padding: 3px 9px; border: 1px solid var(--_line); border-radius: 999px; background: none; font-size: 12px; }
+.item .show:hover { background: var(--_accent); color: var(--_on-accent); border-color: transparent; }
+.item .off { margin-top: 6px; color: var(--_muted); font-size: 12px; }
+.foot { padding: 8px 16px 12px; border-top: 1px solid var(--_line); font-size: 12px; color: var(--_muted); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-[hidden] { display: none !important; }
-@media (prefers-reduced-motion: reduce) { .box.flash { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .fade { transition: none; } .box, .tag, .panel, .box.flash { animation: none; } }
 `;
 
   const MARK = '<svg class="mark" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/><circle cx="8" cy="8" r="2.5" fill="currentColor"/></svg>';
@@ -163,46 +175,102 @@ button { font: inherit; color: inherit; cursor: pointer; }
   };
   const link = (href, cls, text) => (href ? h('a', { class: cls, href, target: '_blank', rel: 'noopener' }, text) : h('span', { class: cls }, text));
 
+  function shadowHost(name) {
+    const host = document.createElement(name);
+    const theme = opt('theme', 'auto');
+    if (theme !== 'auto') host.setAttribute('theme', theme);
+    if (opt('accent')) host.style.setProperty('--credit-accent', opt('accent'));
+    if (opt('on-accent')) host.style.setProperty('--credit-on-accent', opt('on-accent'));
+    const shadow = host.attachShadow({ mode: 'open' });
+    shadow.append(h('style', {}, CSS));
+    return { host, shadow };
+  }
+
   // ---------- state ----------
 
   let credits = [];
   let site = '';
   let sourceUrl = null;
   let active = false;
-  let shadow, rootEl, btn, panel, dimSvg, holes, layer, live;
-  let marks = []; // { credit, el, box, tag, hole }
+  let layerShadow, panel, fade, fadeFill, holes, layer, live;
+  let triggers = [];   // every element that opens and closes Credits
+  let keepLit = [];    // triggers stay lit while the page fades
+  let marks = [];      // { credit, el, box, tag, hole }
   let frame = 0;
 
-  function build() {
-    const host = document.createElement('credit-layer');
-    const theme = opt('theme', 'auto');
-    if (theme !== 'auto') host.setAttribute('theme', theme);
-    if (opt('accent')) host.style.setProperty('--credit-accent', opt('accent'));
-    if (opt('on-accent')) host.style.setProperty('--credit-on-accent', opt('on-accent'));
-    shadow = host.attachShadow({ mode: 'open' });
-    const pos = { 'bottom-right': 'br', 'bottom-left': 'bl', 'top-right': 'tr', 'top-left': 'tl' }[opt('position', 'bottom-right')] || 'br';
+  // ---------- the button ----------
+  // Recommended: at the bottom of the page. A site can choose the place with an element marked data-credit-button
+  // (a <button> or <a> there becomes the button itself, in the site's own style; any other element gets Credit's button inside it),
+  // or float it in a corner with data-position="bottom-right" and so on.
 
-    rootEl = h('div', { class: 'root pos-' + pos });
+  function makeButton() {
+    const label = opt('label', 'Credits');
+    const b = h('button', { class: 'btn', type: 'button', part: 'button', 'aria-pressed': 'false', 'aria-controls': 'credit-panel', onclick: toggle },
+      h('span', { html: MARK }), label, h('span', { class: 'count', 'aria-hidden': 'true' }, String(credits.length)));
+    b.setAttribute('aria-label', label + ' (' + credits.length + ')');
+    return b;
+  }
+
+  function placeButtons(rootEl) {
+    if (opt('button') === 'none') return;
+    const own = document.querySelectorAll('[data-credit-button]');
+    if (own.length) {
+      own.forEach((el) => {
+        if (el.matches('button, a, [role="button"]')) {
+          el.setAttribute('aria-pressed', 'false');
+          el.addEventListener('click', (e) => { e.preventDefault(); toggle(); });
+          triggers.push(el);
+        } else {
+          const { host, shadow } = shadowHost('credit-button');
+          const b = makeButton();
+          shadow.append(h('div', { class: 'root' }, b));
+          el.append(host);
+          triggers.push(b);
+          keepLit.push(host);
+        }
+      });
+      return;
+    }
+    const corner = { 'bottom-right': 'br', 'bottom-left': 'bl', 'top-right': 'tr', 'top-left': 'tl' }[opt('position', 'bottom')];
+    if (corner) {
+      rootEl.classList.add('float', 'pos-' + corner);
+      const b = makeButton();
+      rootEl.append(b);
+      triggers.push(b);
+      return;
+    }
+    // the default: centred at the foot of the page, inside the site's footer when it has one
+    const { host, shadow } = shadowHost('credit-button');
+    const b = makeButton();
+    shadow.append(h('div', { class: 'root inline' }, b));
+    const footers = [...document.querySelectorAll('footer')].filter((f) => !f.closest('article, aside, section, dialog'));
+    (footers[footers.length - 1] || document.body).append(host);
+    triggers.push(b);
+    keepLit.push(host);
+  }
+
+  // ---------- the layer: fade, outlines, labels and the list ----------
+
+  function build() {
+    const { host, shadow } = shadowHost('credit-layer');
+    layerShadow = shadow;
+    const rootEl = h('div', { class: 'root' });
     live = h('div', { class: 'sr', 'aria-live': 'polite' });
 
     const ns = 'http://www.w3.org/2000/svg';
-    dimSvg = document.createElementNS(ns, 'svg');
-    dimSvg.setAttribute('class', 'dim');
-    dimSvg.setAttribute('aria-hidden', 'true');
-    dimSvg.innerHTML = '<defs><mask id="credit-holes" maskUnits="userSpaceOnUse"><rect x="0" y="0" width="100%" height="100%" fill="white"/><g class="holes"></g></mask></defs><rect class="fill" x="0" y="0" width="100%" height="100%" mask="url(#credit-holes)"/>';
-    holes = dimSvg.querySelector('.holes');
-    dimSvg.style.display = 'none';
-    layer = h('div', { class: 'layer' });
-
-    const label = opt('label', 'Credits');
-    btn = h('button', { class: 'btn', type: 'button', part: 'button', 'aria-pressed': 'false', 'aria-controls': 'credit-panel', onclick: toggle },
-      h('span', { html: MARK }), label, h('span', { class: 'count', 'aria-hidden': 'true' }, String(credits.length)));
-    btn.setAttribute('aria-label', label + ' (' + credits.length + ')');
-    if (opt('button') === 'none') btn.hidden = true;
+    fade = document.createElementNS(ns, 'svg');
+    fade.setAttribute('class', 'fade');
+    fade.setAttribute('aria-hidden', 'true');
+    fade.innerHTML = '<defs><mask id="credit-holes" maskUnits="userSpaceOnUse"><rect x="0" y="0" width="100%" height="100%" fill="white"/><g class="holes"></g></mask></defs><rect class="fill" x="0" y="0" width="100%" height="100%" mask="url(#credit-holes)"/>';
+    holes = fade.querySelector('.holes');
+    fadeFill = fade.querySelector('.fill');
+    fade.style.display = 'none';
+    layer = h('div', {});
 
     panel = h('section', { class: 'panel', id: 'credit-panel', part: 'panel', 'aria-label': 'Credits', hidden: true });
-    rootEl.append(dimSvg, layer, panel, btn, live);
-    shadow.append(h('style', {}, CSS), rootEl);
+    rootEl.append(fade, layer, panel, live);
+    placeButtons(rootEl);
+    shadow.append(rootEl);
     document.body.append(host);
   }
 
@@ -228,25 +296,43 @@ button { font: inherit; color: inherit; cursor: pointer; }
     if (sourceUrl) panel.append(h('div', { class: 'foot' }, link(sourceUrl, '', 'View credits.json')));
   }
 
+  const ns = 'http://www.w3.org/2000/svg';
+  const newHole = () => { const r = document.createElementNS(ns, 'rect'); r.setAttribute('fill', 'black'); r.setAttribute('rx', '4'); holes.append(r); return r; };
+
   function mark() {
     holes.textContent = '';
     layer.textContent = '';
     marks = [];
-    const ns = 'http://www.w3.org/2000/svg';
     for (const credit of credits) {
       for (const el of targetsOf(credit)) {
-        const hole = document.createElementNS(ns, 'rect');
-        hole.setAttribute('fill', 'black');
-        hole.setAttribute('rx', '4');
         const box = h('div', { class: 'box', part: 'outline' });
         const tag = link(credit.url, 'tag', h('strong', {}, credit.name));
         tag.setAttribute('part', 'label');
         if (credit.author) tag.append(h('span', {}, 'by ' + credit.author));
-        holes.append(hole);
         layer.append(box, tag);
-        marks.push({ credit, el, box, tag, hole });
+        marks.push({ credit, el, box, tag, hole: newHole() });
       }
     }
+    keepLit = keepLit.filter((el) => el.isConnected);
+    for (const el of keepLit.concat(triggers.filter((t) => t.getRootNode() === document))) {
+      marks.push({ credit: null, el, hole: newHole() });
+    }
+  }
+
+  // something else on top (a pop-up, a menu) hides the part, so it isn't lit through it
+  function covered(el, r, vw, vh) {
+    const x = Math.min(Math.max(r.left + r.width / 2, 1), vw - 1), y = Math.min(Math.max(r.top + r.height / 2, 1), vh - 1);
+    const hit = document.elementsFromPoint(x, y).find((e) => e.localName !== 'credit-layer');
+    if (!hit) return false;
+    if (hit === el || el.contains(hit) || hit.contains(el)) return false;
+    const box = el.ownerSVGElement;   // a picture inside an <svg> shares it with the svg's other shapes
+    return !(box && box.contains(hit));
+  }
+
+  function setHole(hole, r) {
+    if (!r) { hole.setAttribute('width', 0); return; }
+    hole.setAttribute('x', r.left); hole.setAttribute('y', r.top);
+    hole.setAttribute('width', r.width); hole.setAttribute('height', r.height);
   }
 
   function place() {
@@ -254,12 +340,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
     const taken = [];
     for (const m of marks) {
       const r = visibleRect(m.el);
-      const onScreen = r && r.bottom > 0 && r.right > 0 && r.top < vh && r.left < vw;
+      const onScreen = r && r.bottom > 0 && r.right > 0 && r.top < vh && r.left < vw && !covered(m.el, r, vw, vh);
+      setHole(m.hole, onScreen ? r : null);
+      if (!m.credit) continue;
       m.box.hidden = m.tag.hidden = !onScreen;
-      m.hole.setAttribute('width', onScreen ? r.width : 0);
       if (!onScreen) continue;
-      m.hole.setAttribute('x', r.left); m.hole.setAttribute('y', r.top);
-      m.hole.setAttribute('height', r.height);
       Object.assign(m.box.style, { left: r.left - 3 + 'px', top: r.top - 3 + 'px', width: r.width + 6 + 'px', height: r.height + 6 + 'px' });
       const tw = m.tag.offsetWidth, th = m.tag.offsetHeight;
       let x = Math.min(Math.max(8, r.left - 3), vw - tw - 8);
@@ -285,31 +370,43 @@ button { font: inherit; color: inherit; cursor: pointer; }
     m.tag.focus({ preventScroll: true });
   }
 
+  const pressed = (on) => triggers.forEach((t) => t.setAttribute('aria-pressed', String(on)));
+  let hideTimer = 0;
+
   function open() {
-    if (active || !shadow) return;
+    if (active || !layerShadow) return;
     active = true;
+    clearTimeout(hideTimer);
+    fadeFill.style.fill = 'var(--credit-fade-color, ' + pageColor() + ')';
+    fadeFill.style.fillOpacity = 'var(--credit-fade, 0.9)';
     mark();
     renderPanel();
-    dimSvg.style.display = '';
+    place();
+    fade.style.display = '';
+    requestAnimationFrame(() => fade.classList.add('on'));
     panel.hidden = false;
-    btn.setAttribute('aria-pressed', 'true');
+    pressed(true);
     loop();
-    const shown = new Set(marks.filter((m) => visibleRect(m.el)).map((m) => m.credit)).size;
-    live.textContent = 'Credits on. ' + credits.length + (credits.length === 1 ? ' credit, ' : ' credits, ') + shown + ' highlighted on this page.';
+    const shown = new Set(marks.filter((m) => m.credit && visibleRect(m.el)).map((m) => m.credit)).size;
+    live.textContent = 'Credits on. ' + credits.length + (credits.length === 1 ? ' credit, ' : ' credits, ') + shown + ' shown on this page.';
     document.dispatchEvent(new CustomEvent('credit:toggle', { detail: { open: true } }));
   }
 
   function close() {
     if (!active) return;
     active = false;
-    cancelAnimationFrame(frame);
-    dimSvg.style.display = 'none';
+    fade.classList.remove('on');
     panel.hidden = true;
-    holes.textContent = layer.textContent = '';
-    marks = [];
-    btn.setAttribute('aria-pressed', 'false');
+    layer.textContent = '';
+    hideTimer = setTimeout(() => {
+      cancelAnimationFrame(frame);
+      fade.style.display = 'none';
+      holes.textContent = '';
+      marks = [];
+    }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 460);
+    pressed(false);
     live.textContent = 'Credits off.';
-    if (shadow.activeElement && !btn.hidden) btn.focus();
+    if (layerShadow.activeElement && triggers[0]) triggers[0].focus();
     document.dispatchEvent(new CustomEvent('credit:toggle', { detail: { open: false } }));
   }
 

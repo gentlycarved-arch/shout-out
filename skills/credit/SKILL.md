@@ -5,7 +5,7 @@ description: Credit the makers of free tools, code and works used on a website (
 
 # Credit
 
-Credit adds a **Credits** button to any website. Pressing it dims the page and highlights each part made with someone else's tool, labelled with the tool, its maker and a link. It runs from three pieces:
+Credit adds a **Credits** button to the bottom of any website. Pressing it fades the page away except for the parts made with someone else's tools (a shader behind an image effect, a UI kit's components, a font, an icon set), each labelled with the tool, its maker and a link. It runs from three pieces:
 
 - `credit.js`: the script (bundled in this skill at `assets/credit.js`)
 - `credits.json`: the list of credits (format in `assets/SPEC.md`)
@@ -21,7 +21,8 @@ Do this quietly as part of the work. The user shouldn't have to ask twice or fil
    - create `credits.json` at the site root
    - in every page's `<head>`, add `<link rel="credits" href="/credits.json">` (relative path if the site opens from files)
    - before `</body>` on every page, add `<script src="…/credit.js" defer></script>`
-   - match the site: if it has a light and dark theme or a clear accent color, set `data-accent` / `data-on-accent`, or set `--credit-*` properties on `credit-layer` in the site's CSS for each theme
+   - the button goes at the bottom of the page (recommended, and the default: centred in the site's `<footer>`). If the site's footer has its own links, add `<button data-credit-button>Credits</button>` there styled like those links, so it looks like part of the site. Only put it elsewhere if the user asks
+   - match the site: if it has a light and dark theme or a clear accent color, set `data-accent` / `data-on-accent`, or set `--credit-*` properties on `:root` in the site's CSS for each theme (see `assets/SPEC.md`)
    - if the site's builder can't serve extra files (Webflow, Squarespace embed, a single HTML file), put the credits inline in `<script type="application/credits+json">` and load `credit.js` from wherever it can be hosted
    - for React, Vue, Svelte or Astro, put `credit.js` in `public/` and the tags in the root layout, and add `data-credit` as an ordinary attribute in components
 3. **Add the entry** to `credits.json` with a short, unique `id` (e.g. `banknote-shader`) and a one-sentence `note` saying how the site uses it.
