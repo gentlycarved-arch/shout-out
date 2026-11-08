@@ -68,7 +68,7 @@ Credits that make nothing you can point to (a library, a build tool, a font used
 
 **Recommended: at the bottom of the page.** By default `credit.js` puts a small Credits button centred inside the site's `<footer>`, or at the very end of the page if there's no footer.
 
-Pressing it fades the page to its own background colour, except for the parts made with credited tools. Each of those keeps a thin outline. Hovering one (tapping it on a phone, or tabbing to it) shows a small pop-up with the maker's name and a link to the original. Credits with nothing to point at on the page (a font, a library) are listed in one line at the bottom. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
+Pressing it fades the page to dark, except for the parts made with credited tools. Each of those keeps a thin outline. Hovering one (tapping it on a phone, or tabbing to it) shows a small pop-up with the maker's name and a link to the original. Credits with nothing to point at on the page (a font, a library) are listed in one line at the bottom. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
 
 The button shows only `name`, `author` and `url` (or `authorUrl` when there's no `url`). The other fields are there for other tools and for anyone reading the file.
 
@@ -88,7 +88,7 @@ Set as attributes on the `<script>` tag:
 | `data-src` | where to find credits.json | see *Where it lives* |
 | `data-position` | `bottom` (in the footer), `bottom-right`, `bottom-left`, `top-right`, `top-left` | `bottom` |
 | `data-theme` | `auto`, `light`, `dark` | `auto` |
-| `data-accent` | the outline colour | black (white in dark mode) |
+| `data-accent` | the outline colour | white |
 | `data-label` | the button's text | `Credits` |
 | `data-button` | `none` hides the button, for sites that open Credits from their own code | shown |
 
@@ -96,10 +96,21 @@ To match a site, set these custom properties anywhere in its CSS (usually `:root
 
 | Property | What it sets | Default |
 |---|---|---|
-| `--credit-fade-color` | the colour the page fades to | the page's background |
-| `--credit-fade` | how far it fades, 0 to 1 | `0.9` |
-| `--credit-accent` | the outlines | black / white |
-| `--credit-bg`, `--credit-fg`, `--credit-muted` | the button and pop-ups, their text, and the link text | white and black (dark in dark mode) |
-| `--credit-font`, `--credit-radius` | the type and rounding of the button | system sans, 999px |
+| `--credit-fade-color` | the colour the page fades to | near-black `#0a0a0a` |
+| `--credit-fade` | how far it fades, 0 to 1 | `0.82` |
+| `--credit-accent` | the outlines | white |
+| `--credit-bg`, `--credit-fg` | the button and its text | white and black (dark in dark mode) |
+| `--credit-popup-bg`, `--credit-popup-fg`, `--credit-popup-muted` | the hover pop-ups, their text, and the link | white, black, grey |
+| `--credit-font`, `--credit-radius` | the type, and the rounding of the button | Helvetica, 999px |
 
 From the page's own scripts: `Credit.open()`, `Credit.close()`, `Credit.toggle()`, `Credit.isOpen`, `Credit.credits`. The document gets a `credit:toggle` event each time. A link to `page.html#credits` opens the page with credits already showing.
+
+## Finding where your work is credited
+
+Because credits are published in an open, predictable place (`<link rel="credits">`, inline, or `/credits.json`), anyone can find where a tool is credited, starting with its maker.
+
+- **Check sites yourself:** `node tools/find.mjs <you> <site> [site …]`. `<you>` is your name, `@handle`, or a link to your profile, tool or repo. A link matches any credit whose `url` or `authorUrl` is that link or inside it, so `x.com/yourname` finds every post of yours that's credited.
+- **The open list:** sites that want to be found add their address to `registry/sites.txt` with a pull request. Every night `tools/build-index.mjs` reads each one and writes `docs/index.json`, and the search page `docs/index.html` lets creators search it by name, handle or link. Anyone can read `index.json` and build on it.
+
+To be found reliably, give each credit a `url` (the original) and an `authorUrl` (the maker's profile). Those links are what creators search by.
+

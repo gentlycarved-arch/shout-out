@@ -55,32 +55,22 @@
     return r;
   }
 
-  // the colour the page fades to: the page's own background
-  function pageColor() {
-    for (const el of [document.body, document.documentElement]) {
-      const c = getComputedStyle(el).backgroundColor;
-      if (c && c !== 'transparent' && !/rgba\(.*,\s*0\)$/.test(c)) return c;
-    }
-    return '#ffffff';
-  }
-
   // ---------- styles ----------
   // Sites set the --credit-* properties anywhere (usually :root).
 
   const CSS = `
 :host { all: initial; }
 :host {
-  --_accent: var(--credit-accent, #111111);
+  --_accent: var(--credit-accent, #ffffff);
   --_bg: var(--credit-bg, #ffffff);
   --_fg: var(--credit-fg, #111111);
-  --_muted: var(--credit-muted, #777777);
-  --_font: var(--credit-font, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  --_muted: var(--credit-muted, #6b6b6b);
+  --_font: var(--credit-font, "Helvetica Neue", Helvetica, Arial, sans-serif);
   --_r: var(--credit-radius, 999px);
 }
-@media (prefers-color-scheme: dark) {
-  :host(:not([theme="light"])) { --_accent: var(--credit-accent, #f2f2f2); --_bg: var(--credit-bg, #1c1c1c); --_fg: var(--credit-fg, #f2f2f2); --_muted: var(--credit-muted, #9a9a9a); }
-}
-:host([theme="dark"]) { --_accent: var(--credit-accent, #f2f2f2); --_bg: var(--credit-bg, #1c1c1c); --_fg: var(--credit-fg, #f2f2f2); --_muted: var(--credit-muted, #9a9a9a); }
+/* the button sits on the site, so it follows the site's light or dark; the pop-ups sit on the dark fade, so they stay white */
+@media (prefers-color-scheme: dark) { :host(:not([theme="light"])) .btn { --_bg: var(--credit-bg, #1c1c1c); --_fg: var(--credit-fg, #f2f2f2); } }
+:host([theme="dark"]) .btn { --_bg: var(--credit-bg, #1c1c1c); --_fg: var(--credit-fg, #f2f2f2); }
 * { box-sizing: border-box; }
 .root { font-family: var(--_font); font-size: 13px; line-height: 1.3; color: var(--_fg); -webkit-font-smoothing: antialiased; }
 a { color: inherit; text-decoration: none; }
@@ -100,16 +90,16 @@ a { color: inherit; text-decoration: none; }
 .box:focus-visible { outline-width: 2px; }
 .tag {
   position: fixed; z-index: 2147483001; max-width: min(260px, calc(100vw - 16px));
-  display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 10px;
-  background: var(--_bg); color: var(--_fg); box-shadow: 0 2px 10px rgba(0,0,0,.14);
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 8px;
+  background: var(--credit-popup-bg, #ffffff); color: var(--credit-popup-fg, #111111);
   opacity: 0; visibility: hidden; transform: translateY(3px); transition: opacity .15s, transform .15s, visibility 0s .15s;
 }
 .mark.show .tag, .mark:focus-within .tag { opacity: 1; visibility: visible; transform: none; transition: opacity .15s, transform .15s; }
-.tag strong { font-weight: 600; }
-.tag a { color: var(--_muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tag a:hover, .tag a:focus-visible { color: var(--_fg); text-decoration: underline; }
-.also { position: fixed; z-index: 2147483001; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 6px 14px; border-radius: var(--_r); background: var(--_bg); color: var(--_muted); box-shadow: 0 1px 4px rgba(0,0,0,.12); text-align: center; animation: in .4s ease .08s both; }
-.also a { color: var(--_fg); }
+.tag strong { font-weight: 700; }
+.tag a { color: var(--credit-popup-muted, #6b6b6b); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag a:hover, .tag a:focus-visible { color: var(--credit-popup-fg, #111111); text-decoration: underline; }
+.also { position: fixed; z-index: 2147483001; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 6px 14px; border-radius: var(--_r); background: var(--credit-popup-bg, #ffffff); color: var(--credit-popup-muted, #6b6b6b); text-align: center; animation: in .4s ease .08s both; }
+.also a { color: var(--credit-popup-fg, #111111); }
 .also a:hover { text-decoration: underline; }
 @keyframes in { from { opacity: 0; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -302,8 +292,8 @@ a { color: inherit; text-decoration: none; }
     if (active || !layerShadow) return;
     active = true;
     clearTimeout(hideTimer);
-    fadeFill.style.fill = 'var(--credit-fade-color, ' + pageColor() + ')';
-    fadeFill.style.fillOpacity = 'var(--credit-fade, 0.9)';
+    fadeFill.style.fill = 'var(--credit-fade-color, #0a0a0a)';
+    fadeFill.style.fillOpacity = 'var(--credit-fade, 0.82)';
     mark();
     place();
     fade.style.display = '';
