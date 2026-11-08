@@ -66,7 +66,7 @@ Credits that make nothing you can point to (a library, a build tool, a font used
 
 ## The button
 
-**Recommended: at the bottom of the page.** By default `credit.js` puts its Credits button centred inside the site's `<footer>`, or at the very end of the page if there's no footer. Pressing it fades the whole page to its own background colour, except for the parts made with credited tools, which stay clear with a label naming the tool and its maker. The list of credits opens beside them. Pressing it again, the ×, or Esc brings the page back.
+**Recommended: at the bottom of the page.** By default `credit.js` puts its Credits button centred inside the site's `<footer>`, or at the very end of the page if there's no footer. Pressing it fades the whole page to its own background colour, except for the parts made with credited tools, which stay clear with a label naming the tool and its maker. A bar of every credit opens at the bottom, in pills, with a card above it for the chosen one: what it is, its license, Show on page and Open original. Pressing it again, the ×, or Esc brings the page back.
 
 To choose the place yourself, mark it with `data-credit-button`:
 
@@ -84,8 +84,8 @@ Set as attributes on the `<script>` tag:
 | `data-src` | where to find credits.json | see *Where it lives* |
 | `data-position` | `bottom` (in the footer), `bottom-right`, `bottom-left`, `top-right`, `top-left` | `bottom` |
 | `data-theme` | `auto`, `light`, `dark` | `auto` |
-| `data-accent` | any CSS color, for the outlines and labels | `#ffd84d` |
-| `data-on-accent` | the color for text on the accent | `#141414` |
+| `data-accent` | any CSS color, for the outlines and the active marker | `#0b6cff` |
+| `data-on-accent` | the color for text on the accent | `#ffffff` |
 | `data-label` | the button's text | `Credits` |
 | `data-button` | `none` hides the button, for sites that open Credits from their own code | shown |
 
@@ -95,9 +95,11 @@ For full control, set these custom properties anywhere in the site's CSS (usuall
 |---|---|---|
 | `--credit-fade-color` | the colour the page fades to | the page's background |
 | `--credit-fade` | how far it fades, 0 to 1 | `0.9` |
-| `--credit-accent`, `--credit-on-accent` | outlines and labels, and their text | yellow, near-black |
-| `--credit-bg`, `--credit-fg`, `--credit-muted`, `--credit-line` | the button and the list | white and black (dark in dark mode) |
-| `--credit-font`, `--credit-radius` | the type and corner rounding of the button and list | system sans, 10px |
+| `--credit-accent`, `--credit-on-accent` | outlines, check badges, the active marker and the Open button, and their text | blue, white |
+| `--credit-bg` | the card and the labels | white (dark in dark mode) |
+| `--credit-tray`, `--credit-chip`, `--credit-chip-active` | the pill trays, their pills, and the chosen pill | light greys |
+| `--credit-fg`, `--credit-muted`, `--credit-line`, `--credit-shadow` | text, quieter text, hairlines and shadows | |
+| `--credit-font`, `--credit-radius`, `--credit-card-radius` | the type, pill rounding and card rounding | system sans, 999px, 28px |
 
 The button, list, outlines and labels can also be styled with `credit-button::part(button)`, `credit-layer::part(panel)`, `::part(outline)` and `::part(label)`.
 

@@ -1,4 +1,4 @@
-/*! Credit 0.2 · a Credits button that fades a website back to the parts made with other people's tools · MIT */
+/*! Credit 0.3 · a Credits button that fades a website back to the parts made with other people's tools · MIT */
 (() => {
   'use strict';
   if (window.Credit) return;
@@ -68,98 +68,136 @@
     return '#ffffff';
   }
 
+  // ---------- icons (one per kind of credit) ----------
+
+  const svg = (d) => '<svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+  const ICONS = {
+    credit: svg('<rect x="3" y="3" width="14" height="14" rx="3" stroke-dasharray="2.6 2.4"/><circle cx="10" cy="10" r="2.4" fill="currentColor" stroke="none"/>'),
+    shader: svg('<path d="M3 6h7M3 10h5M3 14h7"/><path d="M14.5 5.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" fill="currentColor"/>'),
+    ui: svg('<rect x="2.5" y="4" width="15" height="12" rx="2.5"/><path d="M2.5 8h15M7 8v8"/>'),
+    font: svg('<path d="M5 5h10M10 5v11M8 16h4"/>'),
+    icons: svg('<circle cx="7" cy="7" r="3"/><rect x="11" y="11" width="6" height="6" rx="1.5"/><path d="M13.5 3.5l3 3-3 3-3-3z"/>'),
+    image: svg('<rect x="3" y="3.5" width="14" height="13" rx="2.5"/><circle cx="7.5" cy="8" r="1.5"/><path d="M3.5 15l4.5-4.5 3 3 2-2 3.5 3.5"/>'),
+    code: svg('<path d="M7 6l-4 4 4 4M13 6l4 4-4 4"/>'),
+    animation: svg('<path d="M4 14c2-6 4-8 6-8s4 2 6 8"/><circle cx="10" cy="6" r="1.4" fill="currentColor" stroke="none"/>'),
+    music: svg('<path d="M8 15V5l8-1.5v10"/><circle cx="6" cy="15" r="2"/><circle cx="14" cy="13.5" r="2"/>'),
+    back: svg('<path d="M15.5 10h-11M9 5l-5 5 5 5"/>'),
+    out: svg('<path d="M8 4H5a1.5 1.5 0 0 0-1.5 1.5v9.5A1.5 1.5 0 0 0 5 16.5h9.5A1.5 1.5 0 0 0 16 15v-3M11 3.5h5.5V9M16.5 3.5L9 11"/>'),
+    find: svg('<rect x="3" y="3" width="14" height="14" rx="3"/><path d="M10 6.5v7M6.5 10h7"/>'),
+    license: svg('<path d="M5 3.5h7l3.5 3.5v9.5h-10.5z"/><path d="M12 3.5V7h3.5M7.5 11h5M7.5 14h3"/>'),
+  };
+  const KIND_ICON = { library: 'code', template: 'ui', component: 'ui', 'ui-kit': 'ui', icon: 'icons', photo: 'image', illustration: 'image', video: 'animation', motion: 'animation', snippet: 'code', typeface: 'font' };
+  const iconFor = (kind) => ICONS[kind] || ICONS[KIND_ICON[kind]] || ICONS.credit;
+
   // ---------- styles (shared by the layer and the in-page button) ----------
   // Sites set the public --credit-* properties anywhere (usually :root); the internal --_ ones fall back to the defaults.
 
   const CSS = `
 :host { all: initial; }
 :host {
-  --_accent: var(--credit-accent, #ffd84d);
-  --_on-accent: var(--credit-on-accent, #141414);
+  --_accent: var(--credit-accent, #0b6cff);
+  --_on-accent: var(--credit-on-accent, #ffffff);
   --_bg: var(--credit-bg, #ffffff);
-  --_fg: var(--credit-fg, #141414);
-  --_muted: var(--credit-muted, #5f5f5f);
-  --_line: var(--credit-line, rgba(0,0,0,.12));
-  --_font: var(--credit-font, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
-  --_radius: var(--credit-radius, 10px);
+  --_tray: var(--credit-tray, #e8e8e8);
+  --_chip: var(--credit-chip, #f1f1f1);
+  --_chip-on: var(--credit-chip-active, #ffffff);
+  --_fg: var(--credit-fg, #232323);
+  --_muted: var(--credit-muted, #7a7a7a);
+  --_line: var(--credit-line, rgba(0,0,0,.07));
+  --_shadow: var(--credit-shadow, 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.08));
+  --_font: var(--credit-font, "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  --_r: var(--credit-radius, 999px);
+  --_card-r: var(--credit-card-radius, 28px);
 }
 @media (prefers-color-scheme: dark) {
   :host(:not([theme="light"])) {
-    --_bg: var(--credit-bg, #1c1c1c); --_fg: var(--credit-fg, #f2f2f2);
-    --_muted: var(--credit-muted, #a8a8a8); --_line: var(--credit-line, rgba(255,255,255,.14));
+    --_bg: var(--credit-bg, #1f1f1f); --_tray: var(--credit-tray, #2b2b2b); --_chip: var(--credit-chip, #333333);
+    --_chip-on: var(--credit-chip-active, #4a4a4a); --_fg: var(--credit-fg, #f2f2f2); --_muted: var(--credit-muted, #a3a3a3);
+    --_line: var(--credit-line, rgba(255,255,255,.08));
   }
 }
 :host([theme="dark"]) {
-  --_bg: var(--credit-bg, #1c1c1c); --_fg: var(--credit-fg, #f2f2f2);
-  --_muted: var(--credit-muted, #a8a8a8); --_line: var(--credit-line, rgba(255,255,255,.14));
+  --_bg: var(--credit-bg, #1f1f1f); --_tray: var(--credit-tray, #2b2b2b); --_chip: var(--credit-chip, #333333);
+  --_chip-on: var(--credit-chip-active, #4a4a4a); --_fg: var(--credit-fg, #f2f2f2); --_muted: var(--credit-muted, #a3a3a3);
+  --_line: var(--credit-line, rgba(255,255,255,.08));
 }
 * { box-sizing: border-box; }
-.root { font-family: var(--_font); font-size: 14px; line-height: 1.4; color: var(--_fg); }
-a { color: inherit; }
-button { font: inherit; color: inherit; cursor: pointer; }
+.root { font-family: var(--_font); font-size: 15px; line-height: 1.3; color: var(--_fg); -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; margin: 0; }
 :focus-visible { outline: 2px solid var(--_accent); outline-offset: 2px; }
 [hidden] { display: none !important; }
+.ic { width: 20px; height: 20px; flex: none; }
 
-.btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 8px 14px 8px 12px; border: 1px solid var(--_line); border-radius: 999px;
-  background: var(--_bg); color: var(--_fg); font-weight: 600; letter-spacing: .01em;
+/* trays and pills */
+.tray { display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--_tray); border-radius: var(--_r); box-shadow: var(--_shadow); }
+.chip {
+  position: relative; display: inline-flex; align-items: center; gap: 9px; flex: none;
+  min-height: 48px; padding: 0 18px 0 16px; border-radius: var(--_r); background: var(--_chip); color: var(--_muted);
+  white-space: nowrap; transition: background .15s, color .15s;
 }
-.btn .mark { width: 16px; height: 16px; flex: none; }
-.btn .count { min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--_accent); color: var(--_on-accent); font-size: 12px; text-align: center; }
-.btn[aria-pressed="true"] { background: var(--_accent); color: var(--_on-accent); border-color: transparent; }
-.btn[aria-pressed="true"] .count { background: var(--_on-accent); color: var(--_accent); }
-.inline { display: flex; justify-content: center; padding: 24px 16px; }
-.float .btn { position: fixed; z-index: 2147483001; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
-.pos-br .btn { right: 16px; bottom: 16px; } .pos-bl .btn { left: 16px; bottom: 16px; }
-.pos-tr .btn { right: 16px; top: 16px; }    .pos-tl .btn { left: 16px; top: 16px; }
+.chip:hover { color: var(--_fg); }
+.chip[aria-pressed="true"] { background: var(--_chip-on); color: var(--_fg); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.chip[aria-pressed="true"]::after { content: ""; position: absolute; left: 50%; bottom: -10px; width: 18px; height: 4px; margin-left: -9px; border-radius: 4px; background: var(--_accent); }
+.chip .two { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.chip .two small { font-size: 13px; color: var(--_muted); }
+.round { width: 48px; min-height: 48px; padding: 0; justify-content: center; background: color-mix(in srgb, var(--_tray) 70%, var(--_fg) 8%); }
+.count { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--_accent); color: var(--_on-accent); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
 
+/* the Credits button */
+.inline { display: flex; justify-content: center; padding: 24px 16px 28px; }
+.launcher .chip { color: var(--_fg); }
+.float .launcher { position: fixed; z-index: 2147483001; }
+.pos-br .launcher { right: 16px; bottom: 16px; } .pos-bl .launcher { left: 16px; bottom: 16px; }
+.pos-tr .launcher { right: 16px; top: 16px; }    .pos-tl .launcher { left: 16px; top: 16px; }
+
+/* the fade, outlines and labels */
 .fade { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 2147483000; pointer-events: none; opacity: 0; transition: opacity .45s ease; }
 .fade.on { opacity: 1; }
-.box { position: fixed; z-index: 2147483000; pointer-events: none; border: 1.5px solid var(--_accent); border-radius: 4px; animation: appear .45s ease both; }
+.box { position: fixed; z-index: 2147483000; pointer-events: none; border: 2.5px solid var(--_accent); border-radius: 10px; animation: appear .45s ease both; }
+.box::after {
+  content: ""; position: absolute; top: -11px; right: -11px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--_accent) no-repeat center / 12px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-5' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  box-shadow: 0 0 0 2px var(--_bg);
+}
 .box.flash { animation: flash .9s ease 2; }
 @keyframes appear { from { opacity: 0; } }
-@keyframes flash { 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--_accent) 45%, transparent); } }
+@keyframes flash { 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--_accent) 25%, transparent); } }
 .tag {
   position: fixed; z-index: 2147483001; max-width: min(320px, calc(100vw - 16px));
-  display: flex; flex-direction: column; gap: 1px; padding: 6px 10px; border-radius: 6px;
-  background: var(--_accent); color: var(--_on-accent); text-decoration: none;
-  box-shadow: 0 2px 8px rgba(0,0,0,.14); font-size: 13px; animation: appear .45s ease .1s both;
+  display: inline-flex; align-items: center; gap: 9px; padding: 7px 16px 7px 12px; border-radius: var(--_r);
+  background: var(--_bg); color: var(--_fg); box-shadow: var(--_shadow); animation: appear .45s ease .1s both;
 }
-.tag strong { font-weight: 700; }
-.tag span { opacity: .85; }
-.tag:hover strong, .tag:focus-visible strong { text-decoration: underline; }
-.tag:focus-visible { outline-color: var(--_fg); }
+.tag .ic { color: var(--_accent); }
+.tag .two { display: flex; flex-direction: column; line-height: 1.15; }
+.tag strong { font-weight: 600; font-size: 14px; }
+.tag small { font-size: 12.5px; color: var(--_muted); }
+.tag:hover strong { text-decoration: underline; }
 
-.panel {
-  position: fixed; z-index: 2147483001; width: min(360px, calc(100vw - 32px)); max-height: min(70vh, 560px);
-  display: flex; flex-direction: column; background: var(--_bg); color: var(--_fg);
-  border: 1px solid var(--_line); border-radius: var(--_radius); box-shadow: 0 10px 40px rgba(0,0,0,.18);
-  right: 16px; bottom: 16px; animation: appear .3s ease both;
+/* the dock: a card for the chosen credit over a tray of every credit */
+.dock {
+  position: fixed; z-index: 2147483001; left: 50%; bottom: 20px; transform: translateX(-50%);
+  width: max-content; max-width: calc(100vw - 24px); display: flex; flex-direction: column; align-items: center; gap: 10px;
+  animation: rise .35s cubic-bezier(.2,.8,.2,1) both;
 }
-.pos-br .panel { bottom: 68px; } .pos-bl .panel { left: 16px; right: auto; bottom: 68px; }
-.pos-tr .panel { top: 68px; bottom: auto; } .pos-tl .panel { left: 16px; right: auto; top: 68px; bottom: auto; }
-.head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 16px 10px; border-bottom: 1px solid var(--_line); }
-.head h2 { margin: 0; font-size: 15px; font-weight: 700; }
-.head p { margin: 2px 0 0; color: var(--_muted); font-size: 12px; }
-.close { flex: none; border: 0; background: none; padding: 2px 6px; font-size: 18px; line-height: 1; color: var(--_muted); border-radius: 4px; }
-.list { list-style: none; margin: 0; padding: 4px 0; overflow: auto; }
-.item { padding: 10px 16px; border-bottom: 1px solid var(--_line); }
-.item:last-child { border-bottom: 0; }
-.item .name { font-weight: 650; text-decoration: none; }
-.item a.name:hover, .item a.name:focus-visible { text-decoration: underline; }
-.item .by { color: var(--_muted); }
-.item .meta { margin-top: 2px; color: var(--_muted); font-size: 12px; }
-.item .note { margin: 4px 0 0; }
-.item .show { margin-top: 6px; padding: 3px 9px; border: 1px solid var(--_line); border-radius: 999px; background: none; font-size: 12px; }
-.item .show:hover { background: var(--_accent); color: var(--_on-accent); border-color: transparent; }
-.item .off { margin-top: 6px; color: var(--_muted); font-size: 12px; }
-.foot { padding: 8px 16px 12px; border-top: 1px solid var(--_line); font-size: 12px; color: var(--_muted); }
+@keyframes rise { from { opacity: 0; transform: translate(-50%, 14px); } }
+.card { width: min(560px, calc(100vw - 24px)); padding: 10px; background: var(--_bg); border-radius: var(--_card-r); box-shadow: var(--_shadow); }
+.card .text { padding: 8px 10px 12px; }
+.card h2 { margin: 0; font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
+.card h2 .by { font-weight: 400; color: var(--_muted); }
+.card h2 .by a:hover, .card h2 > a:hover { text-decoration: underline; }
+.card p { margin: 4px 0 0; color: var(--_muted); font-size: 14px; line-height: 1.45; }
+.card .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.card .chip { min-height: 40px; padding: 0 14px 0 12px; font-size: 14px; }
+.card .chip.go { background: var(--_accent); color: var(--_on-accent); }
+.card .chip.off { cursor: default; }
+.bar { max-width: 100%; overflow-x: auto; overflow-y: visible; padding-bottom: 14px; margin-bottom: -14px; scrollbar-width: none; }
+.bar::-webkit-scrollbar { display: none; }
+.bar .tray { width: max-content; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-@media (prefers-reduced-motion: reduce) { .fade { transition: none; } .box, .tag, .panel, .box.flash { animation: none; } }
+@media (max-width: 520px) { .chip { min-height: 44px; padding: 0 14px 0 12px; } .round { width: 44px; } .dock { bottom: 12px; } }
+@media (prefers-reduced-motion: reduce) { .fade { transition: none; } .box, .tag, .dock, .box.flash { animation: none; } }
 `;
-
-  const MARK = '<svg class="mark" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/><circle cx="8" cy="8" r="2.5" fill="currentColor"/></svg>';
 
   const h = (tag, attrs = {}, ...kids) => {
     const el = document.createElement(tag);
@@ -173,7 +211,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
     for (const kid of kids) if (kid != null && kid !== false) el.append(kid);
     return el;
   };
-  const link = (href, cls, text) => (href ? h('a', { class: cls, href, target: '_blank', rel: 'noopener' }, text) : h('span', { class: cls }, text));
+  const icon = (html) => h('span', { html, style: 'display:contents' });
+  const ext = (href, cls, ...kids) => (href ? h('a', { class: cls, href, target: '_blank', rel: 'noopener' }, ...kids) : h('span', { class: cls }, ...kids));
 
   function shadowHost(name) {
     const host = document.createElement(name);
@@ -190,11 +229,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
   let credits = [];
   let site = '';
-  let sourceUrl = null;
   let active = false;
-  let layerShadow, panel, fade, fadeFill, holes, layer, live;
+  let chosen = null;   // the credit shown in the card
+  let layerShadow, dock, fade, fadeFill, holes, layer, live;
   let triggers = [];   // every element that opens and closes Credits
-  let keepLit = [];    // triggers stay lit while the page fades
+  let keepLit = [];    // the button stays lit while the page fades
   let marks = [];      // { credit, el, box, tag, hole }
   let frame = 0;
 
@@ -205,10 +244,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
   function makeButton() {
     const label = opt('label', 'Credits');
-    const b = h('button', { class: 'btn', type: 'button', part: 'button', 'aria-pressed': 'false', 'aria-controls': 'credit-panel', onclick: toggle },
-      h('span', { html: MARK }), label, h('span', { class: 'count', 'aria-hidden': 'true' }, String(credits.length)));
+    const b = h('button', { class: 'chip', type: 'button', part: 'button', 'aria-pressed': 'false', 'aria-controls': 'credit-dock', onclick: toggle },
+      icon(ICONS.credit), label, h('span', { class: 'count', 'aria-hidden': 'true' }, String(credits.length)));
     b.setAttribute('aria-label', label + ' (' + credits.length + ')');
-    return b;
+    return { tray: h('div', { class: 'tray launcher' }, b), b };
   }
 
   function placeButtons(rootEl) {
@@ -222,34 +261,32 @@ button { font: inherit; color: inherit; cursor: pointer; }
           triggers.push(el);
         } else {
           const { host, shadow } = shadowHost('credit-button');
-          const b = makeButton();
-          shadow.append(h('div', { class: 'root' }, b));
+          const { tray, b } = makeButton();
+          shadow.append(h('div', { class: 'root' }, tray));
           el.append(host);
           triggers.push(b);
-          keepLit.push(host);
+          keepLit.push(tray);
         }
       });
       return;
     }
     const corner = { 'bottom-right': 'br', 'bottom-left': 'bl', 'top-right': 'tr', 'top-left': 'tl' }[opt('position', 'bottom')];
+    const { tray, b } = makeButton();
+    triggers.push(b);
     if (corner) {
       rootEl.classList.add('float', 'pos-' + corner);
-      const b = makeButton();
-      rootEl.append(b);
-      triggers.push(b);
+      rootEl.append(tray);
       return;
     }
     // the default: centred at the foot of the page, inside the site's footer when it has one
     const { host, shadow } = shadowHost('credit-button');
-    const b = makeButton();
-    shadow.append(h('div', { class: 'root inline' }, b));
+    shadow.append(h('div', { class: 'root inline' }, tray));
     const footers = [...document.querySelectorAll('footer')].filter((f) => !f.closest('article, aside, section, dialog'));
     (footers[footers.length - 1] || document.body).append(host);
-    triggers.push(b);
-    keepLit.push(host);
+    keepLit.push(tray);
   }
 
-  // ---------- the layer: fade, outlines, labels and the list ----------
+  // ---------- the layer: fade, outlines, labels and the dock ----------
 
   function build() {
     const { host, shadow } = shadowHost('credit-layer');
@@ -267,37 +304,54 @@ button { font: inherit; color: inherit; cursor: pointer; }
     fade.style.display = 'none';
     layer = h('div', {});
 
-    panel = h('section', { class: 'panel', id: 'credit-panel', part: 'panel', 'aria-label': 'Credits', hidden: true });
-    rootEl.append(fade, layer, panel, live);
+    dock = h('section', { class: 'dock', id: 'credit-dock', part: 'panel', 'aria-label': site ? 'Credits for ' + site : 'Credits', hidden: true });
+    rootEl.append(fade, layer, dock, live);
     placeButtons(rootEl);
     shadow.append(rootEl);
     document.body.append(host);
   }
 
-  function renderPanel() {
-    panel.textContent = '';
-    const head = h('div', { class: 'head' },
-      h('div', {}, h('h2', {}, 'Credits'), h('p', {}, site ? site + ' was made with these tools and works' : 'This page was made with these tools and works')),
-      h('button', { class: 'close', type: 'button', 'aria-label': 'Close credits', onclick: close }, '×'));
-    const list = h('ul', { class: 'list' });
-    for (const c of credits) {
-      const tagged = marks.filter((m) => m.credit === c);
-      const shown = tagged.filter((m) => visibleRect(m.el));
-      const meta = [c.kind, c.license].filter(Boolean).join(' · ');
-      list.append(h('li', { class: 'item' },
-        h('div', {}, link(c.url, 'name', c.name), c.author ? h('span', { class: 'by' }, ' by ', link(c.authorUrl, '', c.author)) : null),
-        meta ? h('div', { class: 'meta' }, meta) : null,
-        c.note ? h('p', { class: 'note' }, c.note) : null,
-        shown.length
-          ? h('button', { class: 'show', type: 'button', onclick: () => showOnPage(c) }, shown.length > 1 ? 'Show on page (' + shown.length + ')' : 'Show on page')
-          : tagged.length ? h('div', { class: 'off' }, 'Not visible right now') : null));
+  const shownOf = (c) => marks.filter((m) => m.credit === c && visibleRect(m.el));
+
+  function renderDock() {
+    dock.textContent = '';
+    const c = chosen;
+    const tagged = marks.filter((m) => m.credit === c);
+    const shown = shownOf(c);
+    const row = h('div', { class: 'row' });
+    if (c.kind) row.append(h('span', { class: 'chip off' }, icon(iconFor(c.kind)), c.kind));
+    if (c.license) row.append(h('span', { class: 'chip off' }, icon(ICONS.license), c.license));
+    if (shown.length) row.append(h('button', { class: 'chip', type: 'button', onclick: () => showOnPage(c) }, icon(ICONS.find), shown.length > 1 ? 'Show on page (' + shown.length + ')' : 'Show on page'));
+    else if (tagged.length) row.append(h('span', { class: 'chip off' }, 'Not visible right now'));
+    if (c.url) row.append(ext(c.url, 'chip go', 'Open original', icon(ICONS.out)));
+
+    const card = h('div', { class: 'card' },
+      h('div', { class: 'text' },
+        h('h2', {}, ext(c.url, '', c.name), c.author ? h('span', { class: 'by' }, ' by ', ext(c.authorUrl, '', c.author)) : null),
+        c.note ? h('p', {}, c.note) : null),
+      row);
+
+    const tray = h('div', { class: 'tray' },
+      h('button', { class: 'chip round', type: 'button', 'aria-label': 'Close credits', title: 'Close (Esc)', onclick: close }, icon(ICONS.back)));
+    for (const x of credits) {
+      tray.append(h('button', { class: 'chip', type: 'button', 'aria-pressed': String(x === c), onclick: () => choose(x, true) },
+        icon(iconFor(x.kind)),
+        h('span', { class: 'two' }, x.name, x.author ? h('small', {}, x.author) : null)));
     }
-    panel.append(head, list);
-    if (sourceUrl) panel.append(h('div', { class: 'foot' }, link(sourceUrl, '', 'View credits.json')));
+    dock.append(card, h('div', { class: 'bar' }, tray));
+  }
+
+  function choose(c, show) {
+    chosen = c;
+    const focusIndex = credits.indexOf(c);
+    renderDock();
+    const btns = dock.querySelectorAll('.bar .chip:not(.round)');
+    if (btns[focusIndex]) { btns[focusIndex].focus({ preventScroll: true }); btns[focusIndex].scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+    if (show && shownOf(c).length) showOnPage(c, true);
   }
 
   const ns = 'http://www.w3.org/2000/svg';
-  const newHole = () => { const r = document.createElementNS(ns, 'rect'); r.setAttribute('fill', 'black'); r.setAttribute('rx', '4'); holes.append(r); return r; };
+  const newHole = () => { const r = document.createElementNS(ns, 'rect'); r.setAttribute('fill', 'black'); r.setAttribute('rx', '10'); holes.append(r); return r; };
 
   function mark() {
     holes.textContent = '';
@@ -306,9 +360,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
     for (const credit of credits) {
       for (const el of targetsOf(credit)) {
         const box = h('div', { class: 'box', part: 'outline' });
-        const tag = link(credit.url, 'tag', h('strong', {}, credit.name));
+        const tag = ext(credit.url, 'tag', icon(iconFor(credit.kind)), h('span', { class: 'two' }, h('strong', {}, credit.name), credit.author ? h('small', {}, credit.author) : null));
         tag.setAttribute('part', 'label');
-        if (credit.author) tag.append(h('span', {}, 'by ' + credit.author));
         layer.append(box, tag);
         marks.push({ credit, el, box, tag, hole: newHole() });
       }
@@ -340,17 +393,17 @@ button { font: inherit; color: inherit; cursor: pointer; }
     const taken = [];
     for (const m of marks) {
       const r = visibleRect(m.el);
-      const onScreen = r && r.bottom > 0 && r.right > 0 && r.top < vh && r.left < vw && !covered(m.el, r, vw, vh);
+      const onScreen = r && r.bottom > 0 && r.right > 0 && r.top < vh && r.left < vw && (!m.credit || !covered(m.el, r, vw, vh));
       setHole(m.hole, onScreen ? r : null);
       if (!m.credit) continue;
       m.box.hidden = m.tag.hidden = !onScreen;
       if (!onScreen) continue;
-      Object.assign(m.box.style, { left: r.left - 3 + 'px', top: r.top - 3 + 'px', width: r.width + 6 + 'px', height: r.height + 6 + 'px' });
+      Object.assign(m.box.style, { left: r.left - 4 + 'px', top: r.top - 4 + 'px', width: r.width + 8 + 'px', height: r.height + 8 + 'px' });
       const tw = m.tag.offsetWidth, th = m.tag.offsetHeight;
-      let x = Math.min(Math.max(8, r.left - 3), vw - tw - 8);
-      let y = r.top - th - 10;
-      if (y < 8) y = Math.max(8, r.top + 8);
-      for (const t of taken) if (Math.abs(t.x - x) < tw && Math.abs(t.y - y) < th) y = t.y + th + 4;
+      let x = Math.min(Math.max(8, r.left - 4), vw - tw - 8);
+      let y = r.top - th - 14;
+      if (y < 8) y = Math.max(8, r.top + 10);
+      for (const t of taken) if (Math.abs(t.x - x) < tw && Math.abs(t.y - y) < th) y = t.y + th + 6;
       taken.push({ x, y });
       m.tag.style.left = x + 'px';
       m.tag.style.top = y + 'px';
@@ -359,7 +412,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
   function loop() { place(); frame = requestAnimationFrame(loop); }
 
-  function showOnPage(credit) {
+  function showOnPage(credit, keepFocus) {
     const m = marks.find((m) => m.credit === credit && visibleRect(m.el));
     if (!m) return;
     const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -367,7 +420,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     marks.filter((x) => x.credit === credit).forEach((x) => {
       x.box.classList.remove('flash'); void x.box.offsetWidth; x.box.classList.add('flash');
     });
-    m.tag.focus({ preventScroll: true });
+    if (!keepFocus) m.tag.focus({ preventScroll: true });
   }
 
   const pressed = (on) => triggers.forEach((t) => t.setAttribute('aria-pressed', String(on)));
@@ -380,14 +433,15 @@ button { font: inherit; color: inherit; cursor: pointer; }
     fadeFill.style.fill = 'var(--credit-fade-color, ' + pageColor() + ')';
     fadeFill.style.fillOpacity = 'var(--credit-fade, 0.9)';
     mark();
-    renderPanel();
     place();
+    chosen = credits.find((c) => shownOf(c).length) || credits[0];
+    renderDock();
     fade.style.display = '';
     requestAnimationFrame(() => fade.classList.add('on'));
-    panel.hidden = false;
+    dock.hidden = false;
     pressed(true);
     loop();
-    const shown = new Set(marks.filter((m) => m.credit && visibleRect(m.el)).map((m) => m.credit)).size;
+    const shown = credits.filter((c) => shownOf(c).length).length;
     live.textContent = 'Credits on. ' + credits.length + (credits.length === 1 ? ' credit, ' : ' credits, ') + shown + ' shown on this page.';
     document.dispatchEvent(new CustomEvent('credit:toggle', { detail: { open: true } }));
   }
@@ -396,7 +450,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     if (!active) return;
     active = false;
     fade.classList.remove('on');
-    panel.hidden = true;
+    dock.hidden = true;
     layer.textContent = '';
     hideTimer = setTimeout(() => {
       cancelAnimationFrame(frame);
@@ -406,13 +460,21 @@ button { font: inherit; color: inherit; cursor: pointer; }
     }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 460);
     pressed(false);
     live.textContent = 'Credits off.';
-    if (layerShadow.activeElement && triggers[0]) triggers[0].focus();
+    if (layerShadow.activeElement && triggers[0]) triggers[0].focus({ preventScroll: true });
     document.dispatchEvent(new CustomEvent('credit:toggle', { detail: { open: false } }));
   }
 
   function toggle() { active ? close() : open(); }
 
-  addEventListener('keydown', (e) => { if (e.key === 'Escape' && active) close(); });
+  addEventListener('keydown', (e) => {
+    if (!active) return;
+    if (e.key === 'Escape') close();
+    // arrow keys move between credits while the tray has focus
+    if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && layerShadow.activeElement && layerShadow.activeElement.closest('.bar')) {
+      const i = credits.indexOf(chosen) + (e.key === 'ArrowRight' ? 1 : -1);
+      if (credits[i]) { e.preventDefault(); choose(credits[i], true); }
+    }
+  });
 
   window.Credit = {
     open, close, toggle,
@@ -422,10 +484,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
   async function start() {
     try {
-      const { data, url } = await load();
+      const { data } = await load();
       credits = normalize(data);
       site = (data && data.site) || '';
-      sourceUrl = url;
     } catch (err) {
       console.warn(err.message || err);
       return;
