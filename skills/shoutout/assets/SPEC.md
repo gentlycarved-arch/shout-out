@@ -1,6 +1,6 @@
 # Shoutout
 
-Shoutout designers & makers on your website. When a website uses someone's shader, UI kit, font, snippet or tool, Shoutout shows it: press the Credits button and the page fades to dark, except for the parts made with other people's work, which glow in their own shape, each with a small title linking to the original and "by" its maker. Hover one and it grows to show a line about them.
+Shoutout designers & makers on your website. When a website uses someone's shader, UI kit, font, snippet or tool, Shoutout shows it: press the Shoutout button and the page fades to dark, except for the parts made with other people's work, which glow in their own shape, each with a small title linking to the original and "by" its maker. Hover one and it grows to show a line about them.
 
 The credits themselves are kept in an open, plain format, `credits.json`, described below, so anything can read them, not only Shoutout.
 
@@ -112,7 +112,7 @@ It can also return an element, whose box is used. `Shoutout.area` returns a func
 
 ## Motion
 
-A credit that's a motion (a hover effect, a transition, an animation) can play by itself, slowly, on a loop while Credits is on, about 1.6 s on and 1.8 s off, so people can see what was used. It never runs when the visitor has reduced motion on.
+A credit that's a motion (a hover effect, a transition, an animation) can play by itself, slowly, on a loop while Shoutout is on, about 1.6 s on and 1.8 s off, so people can see what was used. It never runs when the visitor has reduced motion on.
 
 | `replay` | What happens | Use it when |
 |---|---|---|
@@ -122,14 +122,14 @@ A credit that's a motion (a hover effect, a transition, an animation) can play b
 
 ## The button
 
-**Recommended: at the bottom of the page.** By default `shoutout.js` puts a small Credits button centred inside the site's `<footer>`, or at the very end of the page if there's no footer.
+**Recommended: at the bottom of the page.** By default `shoutout.js` puts a small Shoutout button centred inside the site's `<footer>`, or at the very end of the page if there's no footer.
 
-Pressing it fades the page to dark, except for the credited parts. Those glow in their own shape, each with a small white square just below it: the tool's `name` (linking to the original) and, under it, "by" the maker. Hovering one (tapping it on a phone, or tabbing to it) grows it, smoothly, to show the maker's bio, or the credit's `note` when there's no bio. At the top, an "All credits" square drops down to every credit on the site: the parts on this page, then the tools the site was made with under "Made with", then anything else (a font, a library) under "Also". Hovering a name keeps only that credit's parts lit, with their pop-ups open, and clicking it scrolls to the part. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
+Pressing it fades the page to dark, except for the credited parts. Those glow in their own shape, each with a small white square just below it: the tool's `name` (linking to the original) and, under it, "by" the maker. Hovering one (tapping it on a phone, or tabbing to it) grows it, smoothly, to show the maker's bio, or the credit's `note` when there's no bio. At the top, an "All shoutouts" square drops down to every credit on the site: the parts on this page, then the tools the site was made with under "Made with", then anything else (a font, a library) under "Also". Hovering a name keeps only that credit's parts lit, with their pop-ups open, and clicking it scrolls to the part. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
 
 To choose the place yourself, mark it with `data-shoutout-button`:
 
-- on a `<button>` or `<a>`, that element becomes the Credits button, in the site's own style: `<button data-shoutout-button>Credits</button>`
-- on anything else, the Credits button is put inside it
+- on a `<button>` or `<a>`, that element becomes the Shoutout button, in the site's own style: `<button data-shoutout-button>Shoutout</button>`
+- on anything else, the Shoutout button is put inside it
 
 To float the button in a corner of the window, set `data-position` on the script tag.
 
@@ -143,7 +143,7 @@ Set as attributes on the `<script>` tag:
 | `data-position` | `bottom` (in the footer), `bottom-right`, `bottom-left`, `top-right`, `top-left` | `bottom` |
 | `data-theme` | `auto`, `light`, `dark` | `auto` |
 | `data-accent` | the glow colour | white |
-| `data-label` | the button's text | `Credits` |
+| `data-label` | the button's text | `Shoutout` |
 | `data-button` | `none` hides the button, for sites that open Shoutout from their own code | shown |
 
 To match a site, set these custom properties anywhere in its CSS (usually `:root`, and again for a dark theme):
@@ -161,7 +161,7 @@ From the page's own scripts:
 
 | | |
 |---|---|
-| `Shoutout.open()`, `Shoutout.close()`, `Shoutout.toggle()` | turn Credits on and off |
+| `Shoutout.open()`, `Shoutout.close()`, `Shoutout.toggle()` | turn Shoutout on and off |
 | `Shoutout.refresh()` | after the page changes (a new route, parts added or removed) |
 | `Shoutout.area(id, where)` | a part drawn by code (see above) |
 | `Shoutout.isOpen`, `Shoutout.credits`, `Shoutout.version`, `Shoutout.replaying` | what's going on |
@@ -178,7 +178,7 @@ Shoutout follows [semantic versioning](https://semver.org). `Shoutout.version` s
 
 ```html
 <!-- one version, never changes -->
-<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@v2.1.0/shoutout.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@v2.2.0/shoutout.js" defer></script>
 <!-- the latest 2.x: fixes arrive by themselves, nothing breaks -->
 <script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@2/shoutout.js" defer></script>
 ```

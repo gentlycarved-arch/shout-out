@@ -7,7 +7,7 @@ body:
     id: url
     attributes:
       label: Site address
-      description: The page with the Credits button, e.g. https://example.com
+      description: The page with the Shoutout button, e.g. https://example.com
       placeholder: https://example.com
     validations:
       required: true

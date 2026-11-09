@@ -1,8 +1,8 @@
-/*! Shoutout 2.1.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
+/*! Shoutout 2.2.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
 (() => {
   'use strict';
   if (window.Shoutout) return;
-  const VERSION = '2.1.0';
+  const VERSION = '2.2.0';
 
   const script = document.currentScript;
   const opt = (name, fallback) => (script && script.getAttribute('data-' + name)) || fallback;
@@ -200,10 +200,10 @@ a { color: inherit; text-decoration: none; }
   // ---------- the button ----------
   // Recommended: at the bottom of the page (the default, inside the site's footer).
   // An element marked data-shoutout-button chooses the place: a <button> or <a> there becomes the button itself,
-  // anything else gets the Credits button inside it. data-position="bottom-right" etc. floats it in a corner.
+  // anything else gets the Shoutout button inside it. data-position="bottom-right" etc. floats it in a corner.
 
   function makeButton() {
-    return h('button', { class: 'btn', type: 'button', part: 'button', 'aria-pressed': 'false', onclick: toggle }, opt('label', 'Credits'));
+    return h('button', { class: 'btn', type: 'button', part: 'button', 'aria-pressed': 'false', onclick: toggle }, opt('label', 'Shoutout'));
   }
 
   // A site's own <button data-shoutout-button> is answered through one listener on the document, so it keeps working
@@ -218,7 +218,7 @@ a { color: inherit; text-decoration: none; }
     if (opt('button') === 'none') { triggers = []; keepLit = []; return; }
     const own = [...document.querySelectorAll('[data-shoutout-button]')];
     const mine = own.filter((el) => el.matches(OWN));   // the site's own button or link
-    const made = [];                                      // Credits buttons Shoutout put inside the page
+    const made = [];                                      // the buttons Shoutout put inside the page
     let floating = null;
     for (const el of own) {
       if (el.matches(OWN)) continue;
@@ -617,7 +617,7 @@ a { color: inherit; text-decoration: none; }
     }
     if (tools.length) { scroll.append(h('div', { class: 'head' }, 'Made with')); for (const c of tools) scroll.append(row(c, ext(c.url, 'item'))); }
     if (other.length) { scroll.append(h('div', { class: 'head' }, 'Also')); for (const c of other) scroll.append(row(c, ext(c.url, 'item'))); }
-    const toggle = h('button', { class: 'toggle', type: 'button', 'aria-expanded': 'false' }, 'All credits', h('span', {}, String(credits.length)));
+    const toggle = h('button', { class: 'toggle', type: 'button', 'aria-expanded': 'false' }, 'All shoutouts', h('span', {}, String(credits.length)));
     listEl = h('div', { class: 'list', part: 'list' }, toggle, h('div', { class: 'body' }, h('div', { inert: '' }, scroll)));
     toggle.addEventListener('click', () => {
       const open = !listEl.classList.contains('open');
@@ -688,7 +688,7 @@ a { color: inherit; text-decoration: none; }
   let hideTimer = 0;
 
   // ---------- replaying a credited motion ----------
-  // While Credits is on, a credited motion plays by itself, slowly, on a loop:
+  // While Shoutout is on, a credited motion plays by itself, slowly, on a loop:
   //   "hover"         sets data-shoutout-hover on the part; the site's CSS matches it next to :hover. Nothing else happens,
   //                   so no menu opens, no video starts and no analytics fire.
   //   "hover-events"  also sends the mouse events a script listens for. Only for effects driven by a script, and only
@@ -773,7 +773,7 @@ a { color: inherit; text-decoration: none; }
 
   addEventListener('keydown', (e) => { if (e.key === 'Escape' && active) close(); });
 
-  // after the page changes (a new route, parts added or removed), open Credits again over the new parts
+  // after the page changes (a new route, parts added or removed), open Shoutout again over the new parts
   function refresh() { if (active) { stopReplays(); mark(); place(); startReplays(); } }
 
   window.Shoutout = {
@@ -793,7 +793,7 @@ a { color: inherit; text-decoration: none; }
 
   // ---------- when the page changes without reloading ----------
   // Next.js, Astro, Turbo, Framer and other apps change pages in place, and some replace <body> outright.
-  // Shoutout puts itself back, keeps its buttons, re-reads credits written in the page, and, while Credits
+  // Shoutout puts itself back, keeps its buttons, re-reads credits written in the page, and, while Shoutout
   // is on, lights up the parts of the new page.
   let healTimer = 0, inlineText = null;
   const ours = (n) => n.nodeType === 1 && (n.localName === 'shoutout-layer' || n.localName === 'shoutout-button' || n.hasAttribute('data-shoutout-area'));

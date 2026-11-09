@@ -8,16 +8,16 @@ const lit = (page) => page.evaluate(() => {
 });
 
 for (const app of [{ name: 'Next.js', url: process.env.NEXT_URL || 'http://localhost:4321' }, { name: 'Astro', url: process.env.ASTRO_URL || 'http://localhost:4322' }]) {
-  test(`${app.name}: Credits keeps working across in-app navigation`, async ({ page }) => {
+  test(`${app.name}: Shoutout keeps working across in-app navigation`, async ({ page }) => {
     await page.goto(app.url + '/');
     const button = page.locator('footer shoutout-button').locator('button');
-    await expect(button).toHaveText('Credits');
+    await expect(button).toHaveText('Shoutout');
 
     // on: the first page's part is lit
     await button.click();
     await expect.poll(() => lit(page)).toEqual(['Hero shader']);
 
-    // go to the second page inside the app, with Credits still on: its own part lights up
+    // go to the second page inside the app, with Shoutout still on: its own part lights up
     await page.evaluate(() => document.getElementById('to-second').click());
     await page.waitForURL(/second/);
     await expect.poll(() => lit(page), { timeout: 5000 }).toEqual(['Card kit']);

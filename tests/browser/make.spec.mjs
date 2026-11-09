@@ -31,7 +31,7 @@ test('the snippet from "Make your credits" works when pasted into a site', async
   }, snippet);
 
   const button = page.locator('footer shoutout-button').locator('button');
-  await expect(button).toHaveText('Credits');
+  await expect(button).toHaveText('Shoutout');
   await button.click();
   const lit = () => page.evaluate(() => [...document.querySelector('shoutout-layer').shadowRoot.querySelectorAll('.tag .title')].map((t) => t.textContent));
   await expect.poll(lit).toEqual(['Dollar Bill Texture Shader']);

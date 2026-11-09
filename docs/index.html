@@ -32,6 +32,12 @@
   ol li::before { content: counter(step) "."; color: var(--muted); }
   q { quotes: "“" "”"; }
 
+  .agents { margin: 24px 0 10px; }
+  .agents dt { color: var(--fg); }
+  .agents dd { margin: 0; color: var(--muted); font-size: 15px; }
+  code { font: 13px/1.5 ui-monospace, Menlo, monospace; hyphens: none; -webkit-hyphens: none; }
+  pre.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+  pre code { font: inherit; }
   figure { margin: 0; }
   video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; background: var(--code); }
   figcaption { color: var(--muted); font-size: 14px; margin-top: 10px; }
@@ -70,11 +76,11 @@
   <p class="lede">Shoutout designers &amp; makers on your website.</p>
 
   <p>The more I explore what’s possible with agents, the more I appreciate how much of it is made possible by other designers. My bookmarks are full of everything from shaders to UI and motion skills, incredible tools and resources that someone has spent hours creating, refining, and ultimately decided to share with others for free. These are the things I pass along to my agent to help bring my ideas to life. I’ve always loved sharing and celebrating the people behind these creations on social media, but I wanted to find a way to make that appreciation more lasting. Something beyond a post or a passing shoutout. I wanted to create a space on my own website where creators could be credited directly alongside the work and tools that helped make it possible.</p>
-  <p>So I made Shoutout. Press Credits, and the parts made with someone else’s work glow, each tagged with the maker’s name and a link back to them. Credit where it’s due.</p>
+  <p>So I made Shoutout. Add a “Shoutout” button, and the parts made with someone else’s work glow, each tagged with the maker’s name and a link back to them. Credit where it’s due. If you want to gatekeep, that’s fine too.</p>
 
   <h2>Example</h2>
   <figure>
-    <video src="media/tts-credits-demo.mp4" poster="media/tts-credits-demo.jpg" autoplay muted loop playsinline width="1920" height="1200" aria-label="Pressing Credits on The Toronto Society website: the page fades, the engraved angel glows, and hovering shows the Dollar Bill Texture Shader by Praveen Kumar"></video>
+    <video src="media/tts-credits-demo.mp4" poster="media/tts-credits-demo.jpg" autoplay muted loop playsinline width="1920" height="1200" aria-label="Pressing Shoutout on The Toronto Society website: the page fades, the engraved angel glows, and hovering shows the Dollar Bill Texture Shader by Praveen Kumar"></video>
     <figcaption>The Toronto Society: the engraved angel was made with <a href="https://www.figma.com/community/file/1686908159036705400/dollar-bill-texture-shader">Praveen Kumar’s Dollar Bill Texture Shader</a>. Shoutout isn’t live on The Toronto Society’s website yet; it was added there for this example.</figcaption>
   </figure>
 
@@ -82,18 +88,43 @@
   <ol>
     <li><span>Share the link to what you used, the way you already do: <q>use this shader on the hero image</q>, <q>this hover is from @someone’s skill</q>, <q>I made these pictures with their generator</q>, or just <q>add credits to my site</q>.</span></li>
     <li><span>Claude reads the link for the tool’s name, its maker and their profile, then tags the exact part of your site it made. If it can’t find the maker, it asks you instead of guessing.</span></li>
-    <li><span>A small Credits button sits in your footer. Visitors press it and only the credited parts glow, each with its name and “by” its maker. Hover one for more. A credited hover or animation plays itself, slowly, so it’s easy to see. Tools you made the site with are listed under “Made with”.</span></li>
+    <li><span>A small Shoutout button sits in your footer. Visitors press it and only the credited parts glow, each with its name and “by” its maker. Hover one for more. A credited hover or animation plays itself, slowly, so it’s easy to see. Tools you made the site with are listed under “Made with”.</span></li>
   </ol>
 
   <h2>Install</h2>
-  <p>Shoutout is a skill for Claude. In Claude Code, add it once, in your terminal:</p>
+  <p>Shoutout works with any coding agent. Add it once per agent, or once per project.</p>
+
+  <dl class="agents">
+    <dt>Claude Code</dt>
+    <dd>In your terminal:</dd>
+  </dl>
   <pre><code>npx skills add https://github.com/gentlycarved-arch/shoutout --skill shoutout</code></pre>
   <p class="or">Or copy it into Claude Code’s skills folder yourself:</p>
   <pre><code>git clone https://github.com/gentlycarved-arch/shoutout
 cp -R shoutout/skills/shoutout ~/.claude/skills/</code></pre>
-  <p class="or">In Claude on the web or the desktop app, <a href="downloads/shoutout-skill.zip" download>download the skill</a> and upload it in Settings, under Skills.</p>
-  <p class="or">For Cursor, Codex and other coding agents, add <a href="downloads/shoutout-rules.md" download>these rules</a> to your project’s AGENTS.md or rules.</p>
-  <p class="or">Not using an agent? <a href="make.html">Make your credits here</a> and paste one snippet into Framer, Webflow, Squarespace or Wix.</p>
+
+  <dl class="agents">
+    <dt>Claude on the web or the desktop app</dt>
+    <dd><a href="downloads/shoutout-skill.zip" download>Download the skill</a> and upload it in Settings, under Skills.</dd>
+  </dl>
+
+  <dl class="agents">
+    <dt>Codex, Cursor, Copilot, Gemini and other agents</dt>
+    <dd>Add <a href="downloads/shoutout-rules.md" download>the Shoutout rules</a> to the file your agent reads for instructions, in your project’s folder. From your project, in your terminal:</dd>
+  </dl>
+  <pre><code>curl -s https://raw.githubusercontent.com/gentlycarved-arch/shoutout/main/docs/downloads/shoutout-rules.md >> AGENTS.md</code></pre>
+  <p class="or">Codex, Cursor and most agents read <code>AGENTS.md</code>. For GitHub Copilot, use <code>.github/copilot-instructions.md</code>; for Gemini CLI, <code>GEMINI.md</code>; for Claude Code without the skill, <code>CLAUDE.md</code>.</p>
+
+  <dl class="agents">
+    <dt>Any agent, without installing anything</dt>
+    <dd>Tell it, in your own words or these:</dd>
+  </dl>
+  <pre class="wrap"><code>Read https://raw.githubusercontent.com/gentlycarved-arch/shoutout/main/docs/downloads/shoutout-rules.md and follow it to credit the tools I use on this site.</code></pre>
+
+  <dl class="agents">
+    <dt>No agent</dt>
+    <dd><a href="make.html">Make your credits here</a> and paste one snippet into Framer, Webflow, Squarespace or Wix.</dd>
+  </dl>
 
 </main>
 <footer>

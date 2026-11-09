@@ -1,12 +1,12 @@
-<!-- Shoutout 2.1.0: rules for coding agents. Add this to your project's AGENTS.md, CLAUDE.md or Cursor rules. Built from https://github.com/gentlycarved-arch/shoutout -->
+<!-- Shoutout 2.2.0: rules for coding agents. Add this to your project's AGENTS.md, CLAUDE.md or Cursor rules. Built from https://github.com/gentlycarved-arch/shoutout -->
 
 When the user shares a link to someone else's tool or work that they're using on the site, mentions a tool they made the site with, or asks to credit, audit or update credits, follow these instructions.
 
 # Shoutout
 
-Shoutout adds a small **Credits** button to the bottom of any website. Pressing it fades the page away except for the parts made with someone else's work (a shader behind an image effect, a UI kit's components, a hover from someone's skill), which glow in their own shape, each with a small title linking to the original and "by" its maker; hovering one grows it to show their bio.
+Shoutout adds a small **Shoutout** button to the bottom of any website. Pressing it fades the page away except for the parts made with someone else's work (a shader behind an image effect, a UI kit's components, a hover from someone's skill), which glow in their own shape, each with a small title linking to the original and "by" its maker; hovering one grows it to show their bio.
 
-- `shoutout.js`: the script, version 2.1.0: download it from https://raw.githubusercontent.com/gentlycarved-arch/shoutout/main/shoutout.js (its version is on its first line)
+- `shoutout.js`: the script, version 2.2.0: download it from https://raw.githubusercontent.com/gentlycarved-arch/shoutout/main/shoutout.js (its version is on its first line)
 - `credits.json`: the list of credits (format in the spec (https://github.com/gentlycarved-arch/shoutout/blob/main/SPEC.md))
 - `data-credit="id"` on the elements each one made
 
@@ -25,11 +25,11 @@ Do this quietly as part of the work. The user shouldn't have to ask twice or fil
    - create `credits.json` at the site root with `"credit": "1.0"`
    - in every page's `<head>`, add `<link rel="credits" href="/credits.json">` (relative path if the site opens from files)
    - before `</body>` on every page, add `<script src="…/shoutout.js" defer></script>`
-   - the button goes at the bottom of the page (recommended, and the default: centred in the site's `<footer>`). If the site's footer has its own links, add `<button data-shoutout-button>Credits</button>` there styled like those links, so it looks like part of the site. Only put it elsewhere if the user asks
+   - the button goes at the bottom of the page (recommended, and the default: centred in the site's `<footer>`). If the site's footer has its own links, add `<button data-shoutout-button>Shoutout</button>` there styled like those links, so it looks like part of the site. Only put it elsewhere if the user asks
    - match the site: if it has a light and dark theme or a clear accent color, set `data-accent`, or set `--shoutout-*` properties on `:root` in the site's CSS for each theme (see the spec (https://github.com/gentlycarved-arch/shoutout/blob/main/SPEC.md))
    - if the site's builder can't serve extra files (Webflow, Squarespace embed, a single HTML file), put the credits inline in `<script type="application/credits+json">` and load `shoutout.js` from wherever it can be hosted
    - for React, Vue, Svelte or Astro, put `shoutout.js` in `public/` and the tags in the root layout, add `data-credit` as an ordinary attribute in components, and call `Shoutout.refresh()` after a route change
-4. **If what was used is a motion** (a hover effect, a transition, an animation from someone's snippet, skill or library), add `replay` so Credits plays it slowly while it's on:
+4. **If what was used is a motion** (a hover effect, a transition, an animation from someone's snippet, skill or library), add `replay` so Shoutout plays it slowly while it's on:
    - a CSS hover: `"replay": "hover"`, and add `[data-shoutout-hover]` next to the effect's `:hover` selector in the site's CSS, e.g. `.card:hover, .card[data-shoutout-hover] { … }`. This is the safe one: nothing else on the site reacts.
    - a hover driven by a script: `"replay": "hover-events"`, but only after checking what those mouse events do on that element. If they also open a menu, play media, track analytics or change anything beyond the effect, use `"hover"` and add the attribute selector instead, or leave `replay` out.
    - an animation: `"replay": "animation"`.

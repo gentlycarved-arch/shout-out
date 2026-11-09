@@ -1,11 +1,11 @@
 ---
 name: shoutout
-description: Give the makers a shoutout: credit the makers of free tools, code and works used on a website (shaders, fonts, libraries, icons, images, templates, snippets, UI and motion skills, plugins, generators) with a Credits button that lights up the parts they made. Use whenever the user shares a link to someone else's tool or work and uses it on a site (e.g. "use this shader from @someone", a GitHub repo, a Figma Community file, a CodePen, a font page, a tweet, a skill), when they mention a tool they made the site with ("I made these with X's generator"), when they say "credit this", "add credits" or "who made what", when asked to set up, audit or update credits or Shoutout, or to list the site so makers can find it. Also use when building a page with a credited tool already listed in the site's credits.json, so new elements get tagged.
+description: Give the makers a shoutout: credit the makers of free tools, code and works used on a website (shaders, fonts, libraries, icons, images, templates, snippets, UI and motion skills, plugins, generators) with a Shoutout button that lights up the parts they made. Use whenever the user shares a link to someone else's tool or work and uses it on a site (e.g. "use this shader from @someone", a GitHub repo, a Figma Community file, a CodePen, a font page, a tweet, a skill), when they mention a tool they made the site with ("I made these with X's generator"), when they say "credit this", "add credits" or "who made what", when asked to set up, audit or update credits or Shoutout, or to list the site so makers can find it. Also use when building a page with a credited tool already listed in the site's credits.json, so new elements get tagged.
 ---
 
 # Shoutout
 
-Shoutout adds a small **Credits** button to the bottom of any website. Pressing it fades the page away except for the parts made with someone else's work (a shader behind an image effect, a UI kit's components, a hover from someone's skill), which glow in their own shape, each with a small title linking to the original and "by" its maker; hovering one grows it to show their bio.
+Shoutout adds a small **Shoutout** button to the bottom of any website. Pressing it fades the page away except for the parts made with someone else's work (a shader behind an image effect, a UI kit's components, a hover from someone's skill), which glow in their own shape, each with a small title linking to the original and "by" its maker; hovering one grows it to show their bio.
 
 - `shoutout.js`: the script (bundled in this skill at `assets/shoutout.js`; its version is on its first line)
 - `credits.json`: the list of credits (format in `assets/SPEC.md`)
@@ -26,11 +26,11 @@ Do this quietly as part of the work. The user shouldn't have to ask twice or fil
    - create `credits.json` at the site root with `"credit": "1.0"`
    - in every page's `<head>`, add `<link rel="credits" href="/credits.json">` (relative path if the site opens from files)
    - before `</body>` on every page, add `<script src="…/shoutout.js" defer></script>`
-   - the button goes at the bottom of the page (recommended, and the default: centred in the site's `<footer>`). If the site's footer has its own links, add `<button data-shoutout-button>Credits</button>` there styled like those links, so it looks like part of the site. Only put it elsewhere if the user asks
+   - the button goes at the bottom of the page (recommended, and the default: centred in the site's `<footer>`). If the site's footer has its own links, add `<button data-shoutout-button>Shoutout</button>` there styled like those links, so it looks like part of the site. Only put it elsewhere if the user asks
    - match the site: if it has a light and dark theme or a clear accent color, set `data-accent`, or set `--shoutout-*` properties on `:root` in the site's CSS for each theme (see `assets/SPEC.md`)
    - if the site's builder can't serve extra files (Webflow, Squarespace embed, a single HTML file), put the credits inline in `<script type="application/credits+json">` and load `shoutout.js` from wherever it can be hosted
    - for React, Vue, Svelte or Astro, put `shoutout.js` in `public/` and the tags in the root layout, add `data-credit` as an ordinary attribute in components, and call `Shoutout.refresh()` after a route change
-4. **If what was used is a motion** (a hover effect, a transition, an animation from someone's snippet, skill or library), add `replay` so Credits plays it slowly while it's on:
+4. **If what was used is a motion** (a hover effect, a transition, an animation from someone's snippet, skill or library), add `replay` so Shoutout plays it slowly while it's on:
    - a CSS hover: `"replay": "hover"`, and add `[data-shoutout-hover]` next to the effect's `:hover` selector in the site's CSS, e.g. `.card:hover, .card[data-shoutout-hover] { … }`. This is the safe one: nothing else on the site reacts.
    - a hover driven by a script: `"replay": "hover-events"`, but only after checking what those mouse events do on that element. If they also open a menu, play media, track analytics or change anything beyond the effect, use `"hover"` and add the attribute selector instead, or leave `replay` out.
    - an animation: `"replay": "animation"`.

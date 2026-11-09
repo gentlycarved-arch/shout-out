@@ -9,7 +9,7 @@ const layer = (page, fn, arg) => page.evaluate(([src, a]) => {
   return new Function('root', 'a', src)(root, a);
 }, [fn, arg]);
 
-// press Credits (it sits in the footer, so a phone scrolls down to it), then bring the part to look at back into view
+// press Shoutout (it sits in the footer, so a phone scrolls down to it), then bring the part to look at back into view
 async function openCredits(page, isMobile, look = 'main') {
   const button = page.locator('shoutout-button').locator('button');
   if (isMobile) await button.tap(); else await button.click();
@@ -28,9 +28,9 @@ test('loads, with its version', async ({ page }) => {
   expect(await page.evaluate(() => window.Shoutout.credits.length)).toBe(14);
 });
 
-test('the Credits button sits in the footer and turns the fade on and off', async ({ page, isMobile }) => {
+test('the Shoutout button sits in the footer and turns the fade on and off', async ({ page, isMobile }) => {
   const button = page.locator('footer shoutout-button').locator('button');
-  await expect(button).toHaveText('Credits');
+  await expect(button).toHaveText('Shoutout');
   await openCredits(page, isMobile);
   await expect(button).toHaveAttribute('aria-pressed', 'true');
   expect(await layer(page, "return root.querySelector('.fade').classList.contains('on')")).toBe(true);
@@ -128,7 +128,7 @@ test('the list: every credit in one place; hovering a name lights only its parts
     shown: [...root.querySelectorAll('.mark.show .title')].map((t) => t.textContent),
   }`);
   const toggle = page.locator('shoutout-layer .list .toggle');
-  await expect(toggle).toContainText('All credits');
+  await expect(toggle).toContainText('All shoutouts');
   if (isMobile) await toggle.tap(); else await toggle.click();
   await expect.poll(async () => (await state()).open).toBe(true);
   const s = await state();
