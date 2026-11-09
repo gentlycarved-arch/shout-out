@@ -16,7 +16,7 @@ Do this as part of the work, so the user doesn't have to fill anything in by han
 ## When the user shares something they're using
 
 1. **Read the link** to fill in the entry: the tool's own name, the maker's name or handle, the maker's page, and the license or terms. Get these from the page itself, the repo's LICENSE and README, or the post. If a page needs a browser to show its content (Figma Community, many social sites), open it in a browser rather than giving up. Never invent an author or license. If the page can't be read or doesn't say, leave the field out and tell the user what's missing in one line.
-   - **The maker's own card comes first.** Look for their `maker.json`: on their own site at `/maker.json` or `/.well-known/maker.json`, or linked from their home page with `<link rel="maker">`, or in the Discover list at `https://gentlycarved-arch.github.io/shoutout/makers.json`. If there is one, use its `name` as `author`, its `url` as `authorUrl`, its `links` as `authorLinks` and its `about` as `about`, and follow its `credit` line (how they'd like to be credited) for the wording and the link. Then skip the two steps below.
+   - **The maker's own card comes first.** Look for their `maker.json`: on their own site at `/maker.json` or `/.well-known/maker.json`, or linked from their home page with `<link rel="maker">`, or in the Discover list at `https://gentlycarved.com/shout-out/makers.json`. If there is one, use its `name` as `author`, its `url` as `authorUrl`, its `links` as `authorLinks` and its `about` as `about`, and follow its `credit` line (how they'd like to be credited) for the wording and the link. Then skip the two steps below.
    - **The maker's other profiles (`authorLinks`):** when the maker's page links to their other profiles (X, GitHub, Instagram, their own site), list them, so the maker finds the credit whichever one they search by.
    - **The maker's bio (`about`):** open the maker's profile and copy their own bio, word for word, trimmed to about 160 characters at a sentence or phrase break. Where to look, in order: GitHub (`https://api.github.com/users/<name>` gives `bio`); their own website (the `<meta name="description">` or the first line of their about page); their X, Instagram, Bluesky, Dribbble or Figma profile, if it can be read. Never write or polish a bio yourself, and never paste in someone else's description of them. If no bio can be read, leave `about` out and say so in one line.
 2. **Is it a part or a tool?**
@@ -56,7 +56,7 @@ When the user asks to update Shoutout, or when you're working in a site whose `s
 
 When the site is live, offer once to add it to the open list, so makers searching "See your shoutouts" find it. It's the user's call: never open the issue for them. Give them this link with their address filled in:
 
-`https://github.com/gentlycarved-arch/shoutout/issues/new?template=add-site.yml&url=<their site's address>`
+`https://github.com/gentlycarved-arch/shout-out/issues/new?template=add-site.yml&url=<their site's address>`
 
 ## Credit inside image files
 

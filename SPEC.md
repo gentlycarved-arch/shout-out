@@ -194,9 +194,9 @@ Shoutout follows [semantic versioning](https://semver.org). `Shoutout.version` s
 
 ```html
 <!-- one version, never changes -->
-<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@v2.5.0/shoutout.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shout-out@v2.5.0/shoutout.js" defer></script>
 <!-- the latest 2.x: fixes arrive by themselves, nothing breaks -->
-<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@2/shoutout.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shout-out@2/shoutout.js" defer></script>
 ```
 
 The `credits.json` format has its own version, separate from the script's, and follows the same rule. `"credit": "1.0"` files are read by every Shoutout; new fields arrive in format 1.1, 1.2 and so on, and older readers ignore them. Anything that would change what an existing field means waits for format 2.0. Files that say `"0.1"` are read as 1.0. Changes are listed in `CHANGELOG.md`.

@@ -16,8 +16,8 @@ await mkdir(out, { recursive: true });
 await writeFile(root + 'docs/shoutout.js', await readFile(root + 'shoutout.js'));
 
 const version = JSON.parse(await readFile(root + 'package.json', 'utf8')).version;
-const repo = 'https://github.com/gentlycarved-arch/shoutout';
-const raw = 'https://raw.githubusercontent.com/gentlycarved-arch/shoutout/main/';
+const repo = 'https://github.com/gentlycarved-arch/shout-out';
+const raw = 'https://raw.githubusercontent.com/gentlycarved-arch/shout-out/main/';
 
 // the zip: the skill folder as it is, with SKILL.md at the top of the archive's one folder
 await rm(out + 'shoutout-skill.zip', { force: true });

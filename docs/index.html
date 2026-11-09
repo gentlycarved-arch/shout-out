@@ -15,8 +15,6 @@
   body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
   main { width: min(30rem, 100% - 32px); margin: 0 auto; padding: 72px 0 96px; }
 
-  .doves { display: block; width: 140px; height: 140px; margin: 0 auto 56px; }
-  .doves img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
   h1 { font-size: 1.25em; font-weight: 400; line-height: 1.3; margin: 0; text-align: center; }
   /* the title: "Shout Out !" written by hand, scanned, with the paper taken away */
@@ -73,7 +71,6 @@
 </head>
 <body>
 <main>
-  <div class="doves"><img src="media/doves-ink.webp" width="500" height="500" alt="Three doves in flight"></div>
 
   <h1><img class="title" src="media/shoutout-title.png" width="1075" height="380" alt="Shoutout!"></h1>
   <p class="lede">Credit makers on your site.</p>
@@ -117,9 +114,9 @@
     <dt>Claude Code</dt>
     <dd>In your terminal:</dd>
   </dl>
-  <pre><code>npx skills add https://github.com/gentlycarved-arch/shoutout --skill shoutout</code></pre>
+  <pre><code>npx skills add https://github.com/gentlycarved-arch/shout-out --skill shoutout</code></pre>
   <p class="or">Or copy it into Claude Code’s skills folder yourself:</p>
-  <pre><code>git clone https://github.com/gentlycarved-arch/shoutout
+  <pre><code>git clone https://github.com/gentlycarved-arch/shout-out
 cp -R shoutout/skills/shoutout ~/.claude/skills/</code></pre>
 
   <dl class="agents">
@@ -131,14 +128,14 @@ cp -R shoutout/skills/shoutout ~/.claude/skills/</code></pre>
     <dt>Codex, Cursor, Copilot, Gemini and other agents</dt>
     <dd>Add <a href="downloads/shoutout-rules.md" download>the Shoutout rules</a> to the file your agent reads for instructions, in your project’s folder. From your project, in your terminal:</dd>
   </dl>
-  <pre><code>curl -s https://raw.githubusercontent.com/gentlycarved-arch/shoutout/main/docs/downloads/shoutout-rules.md >> AGENTS.md</code></pre>
+  <pre><code>curl -s https://raw.githubusercontent.com/gentlycarved-arch/shout-out/main/docs/downloads/shoutout-rules.md >> AGENTS.md</code></pre>
   <p class="or">Codex, Cursor and most agents read <code>AGENTS.md</code>. For GitHub Copilot, use <code>.github/copilot-instructions.md</code>; for Gemini CLI, <code>GEMINI.md</code>; for Claude Code without the skill, <code>CLAUDE.md</code>.</p>
 
   <dl class="agents">
     <dt>Any agent, without installing anything</dt>
     <dd>Tell it, in your own words or these:</dd>
   </dl>
-  <pre class="wrap"><code>Read https://raw.githubusercontent.com/gentlycarved-arch/shoutout/main/docs/downloads/shoutout-rules.md and follow it to credit the tools I use on this site.</code></pre>
+  <pre class="wrap"><code>Read https://raw.githubusercontent.com/gentlycarved-arch/shout-out/main/docs/downloads/shoutout-rules.md and follow it to credit the tools I use on this site.</code></pre>
 
   <dl class="agents">
     <dt>No agent</dt>
@@ -158,7 +155,7 @@ cp -R shoutout/skills/shoutout ~/.claude/skills/</code></pre>
       </form>
       <p class="status" id="status" aria-live="polite"></p>
       <ul id="results"></ul>
-      <p class="add">Use Shoutout on your site? <a href="https://github.com/gentlycarved-arch/shoutout/issues/new?template=add-site.yml">Add it to the list</a> so makers can find it.</p>
+      <p class="add">Use Shoutout on your site? <a href="https://github.com/gentlycarved-arch/shout-out/issues/new?template=add-site.yml">Add it to the list</a> so makers can find it.</p>
     </div>
   </div>
 </footer>
