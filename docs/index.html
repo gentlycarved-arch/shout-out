@@ -34,8 +34,30 @@
   video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; background: var(--code); }
   figcaption { color: var(--muted); font-size: 14px; margin-top: 10px; }
 
-  footer { width: min(30rem, 100% - 32px); margin: 0 auto; padding: 0 0 48px; color: var(--muted); font-size: 14px; display: flex; gap: 20px; flex-wrap: wrap; }
+  footer { width: min(30rem, 100% - 32px); margin: 0 auto; padding: 0 0 48px; color: var(--muted); font-size: 14px; }
   footer a { color: inherit; }
+
+  /* "See who gave you your flowers": the search opens right below, smoothly */
+  .see { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .see:hover, .see[aria-expanded="true"] { color: var(--fg); }
+  .find { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .6s cubic-bezier(.2, .8, .2, 1); }
+  .find.open { grid-template-rows: 1fr; }
+  .find > div { overflow: hidden; min-height: 0; opacity: 0; transition: opacity .3s ease; }
+  .find.open > div { opacity: 1; transition: opacity .6s cubic-bezier(.2, .8, .2, 1); }
+  /* plain like the rest of the page: text on white, a hairline under the field, the button a word */
+  .find form { display: flex; align-items: baseline; gap: 20px; padding-top: 20px; }
+  .find input { flex: 1; min-width: 0; font: inherit; font-size: 16px; color: var(--fg); background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 6px 0; outline: none; -webkit-appearance: none; appearance: none; }
+  .find input:focus-visible { border-bottom-color: var(--fg); }
+  .find input::placeholder { color: var(--muted); }
+  .find input::-webkit-search-cancel-button { display: none; }
+  .find button[type="submit"] { font: inherit; font-size: 16px; color: var(--fg); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .find button[type="submit"]:focus-visible { outline: 1px solid var(--fg); outline-offset: 3px; }
+  .find .status { margin: 14px 0 0; min-height: 1.4em; text-align: left; }
+  .find ul { list-style: none; margin: 8px 0 0; padding: 0; }
+  .find li { margin: 0 0 12px; color: var(--fg); font-size: 16px; }
+  .find li span { display: block; color: var(--muted); font-size: 14px; }
+  .find .add { margin: 20px 0 0; text-align: left; }
+  @media (prefers-reduced-motion: reduce) { .find, .find > div { transition: none; } }
 </style>
 </head>
 <body>
@@ -66,7 +88,52 @@ cp -R flowers/skills/flowers ~/.claude/skills/</code></pre>
   </figure>
 </main>
 <footer>
-  <a href="find.html">See your flowers</a>
+  <button class="see" type="button" aria-expanded="false" aria-controls="find">See who gave you your flowers</button>
+  <div class="find" id="find">
+    <div inert>
+      <form role="search">
+        <input id="q" type="search" placeholder="@handle, name or link" aria-label="Your name, @handle or a link to your profile or tool" autocomplete="off">
+        <button type="submit">Search</button>
+      </form>
+      <p class="status" id="status" aria-live="polite"></p>
+      <ul id="results"></ul>
+      <p class="add">Use Flowers on your site? <a href="https://github.com/gentlycarved-arch/flowers/issues/new?template=add-site.yml">Add it to the list</a> so makers can find it.</p>
+    </div>
+  </div>
 </footer>
+<script type="module">
+  import { matches } from './match.js';
+  const $ = (id) => document.getElementById(id);
+  const see = document.querySelector('.see'), find = $('find'), inner = find.firstElementChild;
+  let index = null;
+  see.addEventListener('click', () => {
+    const open = see.getAttribute('aria-expanded') !== 'true';
+    see.setAttribute('aria-expanded', String(open));
+    find.classList.toggle('open', open);
+    inner.inert = !open;
+    if (!open) return;
+    $('q').focus({ preventScroll: true });
+    find.addEventListener('transitionend', () => find.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), { once: true });
+    index ??= fetch('index.json').then((r) => r.json()).catch(() => ({ sites: [] })).then((d) => {
+      $('status').textContent = d.sites.length ? d.sites.length + (d.sites.length === 1 ? ' site is' : ' sites are') + ' listed.' : 'No sites are listed yet.';
+      return d;
+    });
+  });
+  find.querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const q = $('q').value, d = await index, out = $('results');
+    out.textContent = '';
+    let n = 0;
+    for (const s of d.sites) for (const c of s.credits) {
+      if (!matches(c, q)) continue;
+      n++;
+      const li = document.createElement('li'), a = document.createElement('a'), span = document.createElement('span');
+      a.href = /^https?:\/\//.test(s.site) ? s.site : '#'; a.textContent = s.name || s.site; a.target = '_blank'; a.rel = 'noopener';
+      span.textContent = c.name + (c.author ? ' by ' + c.author : '') + (c.note ? ' · ' + c.note : '');
+      li.append(a, span); out.append(li);
+    }
+    $('status').textContent = n ? n + (n === 1 ? ' site gave' : ' sites gave') + ' you flowers.' : 'No flowers found for that yet.';
+  });
+</script>
 </body>
 </html>
