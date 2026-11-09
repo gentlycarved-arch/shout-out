@@ -22,6 +22,9 @@
   h3 { font-size: 22px; margin: 0 0 10px; }
   pre { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; overflow: auto; font: 13px/1.5 ui-monospace, Menlo, monospace; }
   .hint { color: var(--muted); font-size: 15px; }
+  .lift { font: inherit; font-size: 15px; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 8px 18px; margin-bottom: 12px; cursor: pointer; transition: transform .45s cubic-bezier(.2,.8,.2,1), background .45s, color .45s; }
+  /* the credited hover effect; [data-flowers-hover] lets Credits replay it */
+  .lift:hover, .lift[data-flowers-hover] { transform: translateY(-4px) scale(1.04); background: var(--fg); color: var(--bg); }
 </style>
 <script type="application/credits+json">
 {
@@ -47,6 +50,16 @@
       "license": "CC BY 4.0",
       "kind": "icons",
       "selectors": [".icons"]
+    },
+    {
+      "id": "lift",
+      "name": "Soft lift hover",
+      "author": "A third maker",
+      "url": "https://example.com/lift",
+      "license": "MIT",
+      "kind": "motion",
+      "note": "The hover on the button in the last card.",
+      "replay": "hover"
     },
     {
       "id": "serif",
@@ -81,6 +94,11 @@
     <div class="card">
       <h2>Tagged by attribute</h2>
       <p>The gradient above has <code>data-credit="aurora"</code> on its canvas.</p>
+    </div>
+    <div class="card">
+      <button class="lift" type="button" data-credit="lift">Hover me</button>
+      <h2>Replayed motion</h2>
+      <p>This button's hover comes from someone else's snippet. With Credits on, it plays by itself, slowly, so you can see it.</p>
     </div>
     <div class="card">
       <h2>Listed only</h2>

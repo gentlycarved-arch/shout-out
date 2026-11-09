@@ -30,9 +30,10 @@ Do this quietly as part of the work. The user shouldn't have to ask twice or fil
    - match the site: if it has a light and dark theme or a clear accent color, set `data-accent` / `data-on-accent`, or set `--flowers-*` properties on `:root` in the site's CSS for each theme (see `assets/SPEC.md`)
    - if the site's builder can't serve extra files (Webflow, Squarespace embed, a single HTML file), put the credits inline in `<script type="application/credits+json">` and load `flowers.js` from wherever it can be hosted
    - for React, Vue, Svelte or Astro, put `flowers.js` in `public/` and the tags in the root layout, and add `data-credit` as an ordinary attribute in components
-3. **Add the entry** to `credits.json` with a short, unique `id` (e.g. `banknote-shader`) and a one-sentence `note` saying how the site uses it.
-4. **Tag what it made**: add `data-credit="id"` to each element the tool produced or renders into (`<img>`, `<canvas>`, `<video>`, an SVG `<image>`, a section). If an element uses several, separate the ids with spaces. If the markup is generated and can't take attributes, use `selectors` in the entry. Things with nothing to point at (a library, a font used everywhere, a build tool) get an entry and no tag.
-5. **Tell the user** in one line what was credited and where, e.g. "Credited the Dollar Bill Texture Shader (by …) on the landing angel."
+3. **If what was used is a motion** (a hover effect, a transition, an animation from someone's snippet, skill or library), add `"replay": "hover"` or `"replay": "animation"` to the entry so Credits plays it slowly while it's on. For `"hover"`, add `[data-flowers-hover]` next to the effect's `:hover` selector in the site's CSS, e.g. `.card:hover, .card[data-flowers-hover] { … }`, and tag the element that gets hovered.
+4. **Add the entry** to `credits.json` with a short, unique `id` (e.g. `banknote-shader`) and a one-sentence `note` saying how the site uses it.
+5. **Tag what it made**: add `data-credit="id"` to each element the tool produced or renders into (`<img>`, `<canvas>`, `<video>`, an SVG `<image>`, a section). If an element uses several, separate the ids with spaces. If the markup is generated and can't take attributes, use `selectors` in the entry. Things with nothing to point at (a library, a font used everywhere, a build tool) get an entry and no tag.
+6. **Tell the user** in one line what was credited and where, e.g. "Credited the Dollar Bill Texture Shader (by …) on the landing angel."
 
 Keep tags up to date as the site changes: when you add an element made with a tool already in `credits.json`, tag it; when you remove the last element using a credit, ask whether to keep the entry in the list.
 

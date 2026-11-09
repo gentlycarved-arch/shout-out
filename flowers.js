@@ -34,6 +34,7 @@
         about: c.about ? String(c.about).trim().slice(0, 200) : '',
         url: isUrl(c.url) ? c.url : isUrl(c.authorUrl) ? c.authorUrl : '',
         selectors: [].concat(c.selectors || []).map(String),
+        replay: c.replay === 'hover' || c.replay === 'animation' ? c.replay : '',
       }));
   }
 
@@ -101,7 +102,8 @@ a { color: inherit; text-decoration: none; }
 .tag a.title:hover, .tag a.title:focus-visible { text-decoration: underline; }
 .tag .more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
 .tag .more > div { overflow: hidden; min-height: 0; display: flex; flex-direction: column; gap: 2px; }
-.mark.show .more, .mark:focus-within .more { grid-template-rows: 1fr; }
+.mark.show .more, .mark:has(:focus-visible) .more { grid-template-rows: 1fr; }
+.mark.show .tag { z-index: 2147483002; }
 .tag .who { color: var(--flowers-popup-muted, #6b6b6b); padding-top: 4px; }
 .tag .about { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 .also { position: fixed; z-index: 2147483001; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 6px 14px; border-radius: var(--_r); background: var(--flowers-popup-bg, #ffffff); color: var(--flowers-popup-muted, #6b6b6b); text-align: center; animation: in .4s ease .08s both; }
@@ -228,7 +230,7 @@ a { color: inherit; text-decoration: none; }
       for (const el of targetsOf(credit)) {
         const box = h('div', { class: 'box', part: 'outline', tabindex: '0', role: 'img', 'aria-label': 'Made with ' + credit.name + (credit.author ? ' by ' + credit.author : '') });
         const about = credit.about, link = credit.url;
-        const title = link ? h('a', { class: 'title', href: link, target: '_blank', rel: 'noopener' }, credit.name + ' ↗') : h('span', { class: 'title' }, credit.name);
+        const title = link ? h('a', { class: 'title', href: link, target: '_blank', rel: 'noopener' }, credit.name) : h('span', { class: 'title' }, credit.name);
         const tag = h('div', { class: 'tag', part: 'label' }, title,
           credit.author || about ? h('div', { class: 'more' }, h('div', {},
             credit.author ? h('span', { class: 'who' }, 'Flowers to ' + credit.author) : null,
@@ -237,7 +239,7 @@ a { color: inherit; text-decoration: none; }
         tag.addEventListener('pointerenter', () => hover(mark));
         tag.addEventListener('pointerleave', () => hover(null));
         layer.append(group);
-        const mark = { credit, el, box, tag, group, hole: newHole(), r: null };
+        const mark = { credit, el, box, tag, title, group, hole: newHole(), r: null };
         marks.push(mark);
       }
     }
@@ -283,7 +285,7 @@ a { color: inherit; text-decoration: none; }
       m.box.hidden = m.tag.hidden = !on;
       if (!on) continue;
       Object.assign(m.box.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' });
-      const tw = m.tag.offsetWidth, th = m.tag.offsetHeight;
+      const tw = m.tag.offsetWidth, th = m.title.offsetHeight + 16;   // the closed height: opening never moves the title
       let x = Math.min(Math.max(8, r.left), vw - tw - 8);
       let y = r.top - th - 10;
       if (y < 8) y = Math.max(8, r.top + 8);
@@ -297,6 +299,40 @@ a { color: inherit; text-decoration: none; }
   const pressed = (on) => triggers.forEach((t) => t.setAttribute('aria-pressed', String(on)));
   let hideTimer = 0;
 
+  // ---------- replaying a credited motion ----------
+  // "replay": "hover" plays the part's hover effect by itself, slowly, on a loop: it sends the mouse events
+  // a script listens for and sets data-flowers-hover, which the site's CSS can match next to :hover.
+  // "replay": "animation" restarts the part's own CSS or Web animations on a loop.
+  const replays = new Map();   // element -> { timer, on }
+  const HOLD = 1600, REST = 1800;
+  function pulse(el, kind, on) {
+    if (kind === 'hover') {
+      el.toggleAttribute('data-flowers-hover', on);
+      const r = el.getBoundingClientRect(), at = { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
+      for (const type of on ? ['pointerover', 'pointerenter', 'mouseover', 'mouseenter', 'pointermove', 'mousemove'] : ['pointerout', 'pointerleave', 'mouseout', 'mouseleave']) {
+        const E = type.startsWith('pointer') && window.PointerEvent ? PointerEvent : MouseEvent;
+        el.dispatchEvent(new E(type, { ...at, bubbles: !/enter|leave/.test(type), pointerType: 'mouse' }));
+      }
+    } else if (on) {
+      for (const a of el.getAnimations({ subtree: true })) { a.currentTime = 0; a.play(); }
+    }
+  }
+  function startReplays() {
+    stopReplays();
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    for (const m of marks) {
+      if (!m.credit || !m.credit.replay || replays.has(m.el)) continue;
+      const state = { on: false, kind: m.credit.replay, timer: 0 };
+      const tick = () => { state.on = !state.on; pulse(m.el, state.kind, state.on); state.timer = setTimeout(tick, state.on ? HOLD : REST); };
+      state.timer = setTimeout(tick, 700);
+      replays.set(m.el, state);
+    }
+  }
+  function stopReplays() {
+    for (const [el, state] of replays) { clearTimeout(state.timer); if (state.on) pulse(el, state.kind, false); }
+    replays.clear();
+  }
+
   function open() {
     if (active || !layerShadow) return;
     active = true;
@@ -309,6 +345,7 @@ a { color: inherit; text-decoration: none; }
     requestAnimationFrame(() => fade.classList.add('on'));
     pressed(true);
     loop();
+    startReplays();
     const shown = credits.filter((c) => marks.some((m) => m.credit === c && visibleRect(m.el))).length;
     live.textContent = 'Flowers on. ' + shown + ' of ' + credits.length + ' shown on this page. Press Escape to close.';
     document.dispatchEvent(new CustomEvent('flowers:toggle', { detail: { open: true } }));
@@ -317,6 +354,7 @@ a { color: inherit; text-decoration: none; }
   function close() {
     if (!active) return;
     active = false;
+    stopReplays();
     fade.classList.remove('on');
     layer.textContent = '';
     shownMark = null;

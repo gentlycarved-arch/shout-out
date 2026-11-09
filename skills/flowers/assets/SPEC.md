@@ -52,6 +52,7 @@ The `<link rel="credits">` line is recommended even when the script isn't used, 
 | `author` | no | Who made it: a person, a group or a handle |
 | `authorUrl` | no | Where the author lives online (`http` or `https` only) |
 | `about` | no | A short line about the maker, in their own words: their bio from the profile at `authorUrl`. Up to about 160 characters; the pop-up shows at most three lines |
+| `replay` | no | `"hover"` or `"animation"`, for credits that are a motion. While Credits is on, the part plays it by itself, slowly, on a loop (about 1.6 s on, 1.8 s off), so people can see what was used. `"hover"` sends the mouse events a script listens for and sets `data-flowers-hover` on the element; add `[data-flowers-hover]` next to `:hover` in the site's CSS (`.card:hover, .card[data-flowers-hover] { … }`). `"animation"` restarts the element's own CSS or Web animations. Skipped when the visitor has reduced motion on |
 | `url` | no | The original: the post, repo, page or file where it was shared (`http` or `https` only) |
 | `license` | no | The license or terms, e.g. `MIT`, `CC BY 4.0`, `Figma Community`, `free to use` |
 | `kind` | no | What it is: `shader`, `ui` (a UI kit, component or interface tool), `font`, `library`, `image`, `icon`, `animation`, `template`, `code`, `music` and so on |
@@ -78,7 +79,7 @@ Credits that make nothing you can point to (a library, a build tool, a font used
 
 Pressing it fades the page to dark, except for the parts made with credited tools. Those glow softly, each with a small white title (the tool's `name`, linking to the original). Hovering one (tapping it on a phone, or tabbing to it) opens the title up to show "Flowers to" the maker's name and their short bio, if there is one. Credits with nothing to point at on the page (a font, a library) are listed in one line at the bottom. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
 
-The pop-up shows only `name`, `author`, `about` and `url` (or `authorUrl` when there's no `url`). The other fields are there for other tools and for anyone reading the file.
+The pop-up shows only `name`, `author`, `about` and `url`; `replay` drives the motion replay (or `authorUrl` when there's no `url`). The other fields are there for other tools and for anyone reading the file.
 
 To choose the place yourself, mark it with `data-flowers-button`:
 
