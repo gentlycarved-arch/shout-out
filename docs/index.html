@@ -47,16 +47,18 @@
   footer a { color: inherit; }
 
   /* "See who gave you a shoutout": the search opens right below, smoothly */
-  .see { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .see { font: inherit; color: inherit; background: none; border: 0; padding: 6px 0; line-height: 1.4; cursor: pointer; }
+  .find button[type="submit"]:hover { color: var(--muted); }
   .see:hover, .see[aria-expanded="true"] { color: var(--fg); }
   .find { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .6s cubic-bezier(.2, .8, .2, 1); }
   .find.open { grid-template-rows: 1fr; }
   .find > div { overflow: hidden; min-height: 0; opacity: 0; transition: opacity .3s ease; }
   .find.open > div { opacity: 1; transition: opacity .6s cubic-bezier(.2, .8, .2, 1); }
   /* plain like the rest of the page: text on white, a hairline under the field, the button a word */
-  .find form { display: flex; align-items: baseline; gap: 20px; padding-top: 20px; }
-  .find input { flex: 1; min-width: 0; font: inherit; font-size: 16px; color: var(--fg); background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 6px 0; outline: none; -webkit-appearance: none; appearance: none; }
-  .find input:focus-visible { border-bottom-color: var(--fg); }
+  /* one hairline under the field and the Search button together, both on the same line of text */
+  .find form { display: flex; align-items: baseline; gap: 20px; margin-top: 20px; border-bottom: 1px solid var(--line); }
+  .find form:focus-within { border-bottom-color: var(--fg); }
+  .find input { flex: 1; min-width: 0; font: inherit; font-size: 16px; color: var(--fg); background: none; border: 0; border-radius: 0; padding: 6px 0; line-height: 1.4; outline: none; -webkit-appearance: none; appearance: none; }
   .find input::placeholder { color: var(--muted); }
   .find input::-webkit-search-cancel-button { display: none; }
   .find button[type="submit"] { font: inherit; font-size: 16px; color: var(--fg); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
