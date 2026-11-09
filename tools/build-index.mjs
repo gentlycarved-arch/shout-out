@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Read every site in registry/sites.txt and write docs/index.json, the list the search page (docs/index.html) looks through.
+// Read every site in registry/sites.txt and write docs/index.json, the list the search page (docs/find.html) looks through.
 // Run by .github/workflows/index.yml every night, or by hand: node tools/build-index.mjs
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';

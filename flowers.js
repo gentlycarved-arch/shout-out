@@ -16,7 +16,7 @@
     }
     const link = document.querySelector('link[rel~="credits"]');
     const url = new URL(src || (link && link.getAttribute('href')) || 'credits.json', document.baseURI).href;
-    const res = await fetch(url);
+    const res = await fetch(url, { cache: 'no-cache' });   // always check for the latest credits
     if (!res.ok) throw new Error('Flowers: could not load ' + url + ' (' + res.status + ')');
     return res.json();
   }
@@ -32,6 +32,7 @@
         name: String(c.name),
         author: c.author ? String(c.author) : '',
         about: c.about ? String(c.about).trim().slice(0, 200) : '',
+        note: c.note ? String(c.note).trim().slice(0, 200) : '',
         url: isUrl(c.url) ? c.url : isUrl(c.authorUrl) ? c.authorUrl : '',
         selectors: [].concat(c.selectors || []).map(String),
         replay: c.replay === 'hover' || c.replay === 'animation' ? c.replay : '',
@@ -67,14 +68,14 @@
   --_bg: var(--flowers-bg, #ffffff);
   --_fg: var(--flowers-fg, #111111);
   --_muted: var(--flowers-muted, #6b6b6b);
-  --_font: var(--flowers-font, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif);
-  --_pop-bg: var(--flowers-popup-bg, rgba(44, 44, 46, .72));
-  --_pop-fg: var(--flowers-popup-fg, #f5f5f7);
-  --_pop-muted: var(--flowers-popup-muted, rgba(235, 235, 245, .6));
-  --_pop-line: var(--flowers-popup-border, rgba(255, 255, 255, .16));
+  --_font: var(--flowers-font, "Helvetica Neue", Helvetica, Arial, sans-serif);
+  --_pop-bg: var(--flowers-popup-bg, #ffffff);
+  --_pop-fg: var(--flowers-popup-fg, #111111);
+  --_pop-muted: var(--flowers-popup-muted, #6b6b6b);
+  --_ease: cubic-bezier(.2, .8, .2, 1);
   --_r: var(--flowers-radius, 999px);
 }
-/* the button sits on the site, so it follows the site's light or dark; the pop-ups sit on the dark fade, so they're dark glass */
+/* the button sits on the site, so it follows the site's light or dark; the pop-ups sit on the dark fade, so they stay white */
 @media (prefers-color-scheme: dark) { :host(:not([theme="light"])) .btn { --_bg: var(--flowers-bg, #1c1c1c); --_fg: var(--flowers-fg, #f2f2f2); } }
 :host([theme="dark"]) .btn { --_bg: var(--flowers-bg, #1c1c1c); --_fg: var(--flowers-fg, #f2f2f2); }
 * { box-sizing: border-box; }
@@ -97,36 +98,30 @@ a { color: inherit; text-decoration: none; }
 .halo-color { flood-color: var(--_accent); flood-opacity: .8; }
 .halos { pointer-events: none; }
 .fade.on .halos { animation: in .8s ease .15s both; }
-/* the pop-over: dark glass with a small point toward its part, like a macOS menu */
+/* the pop-over: a white square with the title; on hover it grows, smoothly, to hold the description */
 .tag {
-  position: fixed; z-index: 2147483001; max-width: min(260px, calc(100vw - 16px));
-  display: flex; flex-direction: column; gap: 2px; padding: 7px 12px; border-radius: 12px;
-  background: var(--_pop-bg); color: var(--_pop-fg); border: 1px solid var(--_pop-line);
-  -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6);
+  position: fixed; z-index: 2147483001; overflow: hidden;
+  display: flex; flex-direction: column; padding: 8px 12px; border-radius: 0;
+  background: var(--_pop-bg); color: var(--_pop-fg);
   font-size: 13px; line-height: 1.35; animation: in .4s ease .1s both;
+  transition: width .6s var(--_ease);
 }
-.tag::before {
-  content: ""; position: absolute; left: var(--cx, 20px); width: 12px; height: 12px; margin-left: -6px;
-  background: var(--_pop-bg); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6);
-  border: 1px solid var(--_pop-line); transform: rotate(45deg);
-}
-.tag[data-point="up"]::before { top: -7px; border-right: 0; border-bottom: 0; clip-path: polygon(0 0, 100% 0, 0 100%); }
-.tag[data-point="down"]::before { bottom: -7px; border-left: 0; border-top: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
-.tag:not([data-point])::before { display: none; }
-.tag .title { font-weight: 600; color: inherit; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag .title { width: max-content; max-width: 100%; font-weight: 700; color: inherit; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tag a.title:hover, .tag a.title:focus-visible { text-decoration: underline; }
-.tag .more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
-.tag .more > div { overflow: hidden; min-height: 0; display: flex; flex-direction: column; gap: 2px; }
+.tag .more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .6s var(--_ease); }
+.tag .more > div { overflow: hidden; min-height: 0; display: flex; flex-direction: column; gap: 3px; opacity: 0; transition: opacity .3s ease; }
+.mark.show .more > div, .mark:has(:focus-visible) .more > div { opacity: 1; transition: opacity .6s var(--_ease); }
 .mark.show .more, .mark:has(:focus-visible) .more { grid-template-rows: 1fr; }
 .mark.show .tag { z-index: 2147483002; }
-.tag .who { color: var(--_pop-muted); padding-top: 3px; }
+.tag .by { color: var(--_pop-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tag .about { padding-top: 4px; }
 .tag .about { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
-.also { position: fixed; z-index: 2147483001; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 6px 14px; border-radius: 12px; background: var(--_pop-bg); color: var(--_pop-muted); border: 1px solid var(--_pop-line); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6); text-align: center; animation: in .4s ease .08s both; }
+.also { position: fixed; z-index: 2147483001; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 6px 14px; border-radius: 0; background: var(--_pop-bg); color: var(--_pop-muted); text-align: center; animation: in .4s ease .08s both; }
 .also a { color: var(--_pop-fg); }
 .also a:hover { text-decoration: underline; }
 @keyframes in { from { opacity: 0; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-@media (prefers-reduced-motion: reduce) { .fade, .tag .more { transition: none; } .box, .tag, .also, .fade.on .halos { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .fade, .tag, .tag .more, .tag .more > div { transition: none; } .box, .tag, .also, .fade.on .halos { animation: none; } }
 `;
 
   const h = (tag, attrs = {}, ...kids) => {
@@ -365,17 +360,16 @@ a { color: inherit; text-decoration: none; }
     for (const credit of credits) {
       for (const el of targetsOf(credit)) {
         const box = h('div', { class: 'box', part: 'outline', tabindex: '0', role: 'img', 'aria-label': 'Made with ' + credit.name + (credit.author ? ' by ' + credit.author : '') });
-        const about = credit.about, link = credit.url;
-        const title = link ? h('a', { class: 'title', href: link, target: '_blank', rel: 'noopener' }, credit.name) : h('span', { class: 'title' }, credit.name);
-        const tag = h('div', { class: 'tag', part: 'label' }, title,
-          credit.author || about ? h('div', { class: 'more' }, h('div', {},
-            credit.author ? h('span', { class: 'who' }, 'Flowers to ' + credit.author) : null,
-            about ? h('span', { class: 'about' }, about) : null)) : null);
+        const about = credit.about || credit.note, link = credit.url;
+        const title = link ? h('a', { class: 'title', href: link, target: '_blank', rel: 'noopener' }, h('span', {}, credit.name)) : h('span', { class: 'title' }, h('span', {}, credit.name));
+        const by = credit.author ? h('span', { class: 'by' }, h('span', {}, 'by ' + credit.author)) : null;
+        const tag = h('div', { class: 'tag', part: 'label' }, title, by,
+          about ? h('div', { class: 'more' }, h('div', {}, h('span', { class: 'about' }, about))) : null);
         const group = h('div', { class: 'mark' }, box, tag);
         tag.addEventListener('pointerenter', () => hover(mark));
         tag.addEventListener('pointerleave', () => hover(null));
         layer.append(group);
-        const mark = { credit, el, box, tag, title, group, shape: makeShape(el, true), r: null };
+        const mark = { credit, el, box, tag, title, by, group, shape: makeShape(el, true), r: null };
         marks.push(mark);
       }
     }
@@ -421,18 +415,20 @@ a { color: inherit; text-decoration: none; }
       m.box.hidden = m.tag.hidden = !on;
       if (!on) continue;
       Object.assign(m.box.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' });
-      // below the part, pointing up at it, and opening downward so the title never moves;
-      // above it, pointing down, when there's no room below; inside its top edge when there's room for neither
-      const tw = m.tag.offsetWidth, th = m.tag.offsetHeight;
-      const inner = m.tag.querySelector('.more > div'), full = m.title.offsetHeight + 16 + (inner ? inner.scrollHeight + 3 : 0);
+      // below the part, opening downward so the title never moves; above it when there's no room below;
+      // inside its top edge when there's room for neither. Open, it widens to fit the description.
+      const inner = m.tag.querySelector('.more > div');
+      const closedW = Math.ceil(Math.max(m.title.firstChild.getBoundingClientRect().width, m.by ? m.by.firstChild.getBoundingClientRect().width : 0)) + 25, maxW = Math.min(260, vw - 16);
+      const openW = inner ? Math.max(Math.min(closedW, maxW), maxW) : Math.min(closedW, maxW);
+      const isOpen = m.group.matches('.show, :has(:focus-visible)');
+      m.tag.style.width = (isOpen ? openW : Math.min(closedW, maxW)) + 'px';
+      const th = m.tag.offsetHeight, full = m.title.offsetHeight + (m.by ? m.by.offsetHeight : 0) + 16 + (inner ? inner.scrollHeight : 0);
       const cx = r.left + Math.min(r.width, vw) / 2;
-      const x = Math.min(Math.max(8, cx - tw / 2), vw - tw - 8);
-      let y, point;
-      if (r.bottom + 12 + full <= vh - 8) { y = r.bottom + 12; point = 'up'; }
-      else if (r.top - 12 - full >= 8) { y = r.top - 12 - th; point = 'down'; }
-      else { y = Math.max(8, Math.min(r.top + 12, vh - th - 8)); point = ''; }
-      if (point) m.tag.dataset.point = point; else delete m.tag.dataset.point;
-      m.tag.style.setProperty('--cx', Math.min(Math.max(16, cx - x), tw - 16) + 'px');
+      const x = Math.max(8, Math.min(cx - Math.min(closedW, maxW) / 2, vw - openW - 8));
+      let y;
+      if (r.bottom + 10 + full <= vh - 8) y = r.bottom + 10;
+      else if (r.top - 10 - full >= 8) y = r.top - 10 - th;
+      else y = Math.max(8, Math.min(r.top + 10, vh - th - 8));
       m.tag.style.left = x + 'px';
       m.tag.style.top = y + 'px';
     }
