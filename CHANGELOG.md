@@ -2,6 +2,13 @@
 
 Shoutout follows [semantic versioning](https://semver.org): within a major version, a release never breaks a site that worked with an earlier one. The `credits.json` format has its own version; `"credit": "1.0"` files are read by every release.
 
+## 2.5.0
+
+- **Credit by file.** A credit can list the files it covers (`"files": ["/textures/paper-*.png", "images.unsplash.com/photo-123*"]`), and Shoutout finds every place the page uses them: `<img>` and srcset, `<picture>`, video posters, SVG images, and CSS backgrounds, masks and border images, including `::before` and `::after` layers.
+- **Packs.** More than three parts from one credit glow together, with one pop-up at a time; the list says how many and steps through them.
+- **Textures.** `"kind": "texture"` isn't lit. Its card shows a swatch and a switch that takes the texture off the page for a moment, so people see the difference it makes.
+- **Credit inside image files.** The skill reads IPTC, XMP and Content Credentials (C2PA) from a site's images (`assets/read-image-credits.mjs`) and offers what it finds as options. The site's owner chooses what to credit.
+
 ## 2.4.0
 
 - **Maker cards.** Makers can publish a `maker.json`: their name, a line about them, their links, how they'd like to be credited, their works, and whether to be listed. The skill reads a maker's card first, so their own words are the ones that show. The Shoutout site has a "Make your maker card" page that writes it.

@@ -29,7 +29,10 @@ const body = skill.replace(/^---[\s\S]*?---\s*/, '')
   .replace(/the script \(bundled in this skill at `assets\/shoutout\.js`; its version is on its first line\)/,
     `the script, version ${version}: download it from ${raw}shoutout.js (its version is on its first line)`)
   .replaceAll('`assets/shoutout.js`', `\`shoutout.js\` (${raw}shoutout.js)`)
-  .replaceAll('`assets/SPEC.md`', `the spec (${repo}/blob/main/SPEC.md)`);
+  .replaceAll('`assets/SPEC.md`', `the spec (${repo}/blob/main/SPEC.md)`)
+  .replaceAll('node <this skill>/assets/read-image-credits.mjs', `curl -sO ${raw}skills/shoutout/assets/read-image-credits.mjs && node read-image-credits.mjs`)
+  .replaceAll('`assets/read-image-credits.mjs`', `\`read-image-credits.mjs\` (${raw}skills/shoutout/assets/read-image-credits.mjs)`)
+  .replaceAll("The skill's `assets/read-image-credits.mjs`", 'read-image-credits.mjs');
 const rules = `<!-- Shoutout ${version}: rules for coding agents. Add this to your project's AGENTS.md, CLAUDE.md or Cursor rules. Built from ${repo} -->
 
 When the user shares a link to someone else's tool or work that they're using on the site, mentions a tool they made the site with, or asks to credit, audit or update credits, follow these instructions.

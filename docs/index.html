@@ -35,6 +35,7 @@
   .agents { margin: 24px 0 10px; }
   .agents dt { color: var(--fg); }
   .agents dd { margin: 0; color: var(--muted); font-size: 15px; }
+  .agents dd + dt { margin-top: 14px; }
   code { font: 13px/1.5 ui-monospace, Menlo, monospace; hyphens: none; -webkit-hyphens: none; }
   pre.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
   pre code { font: inherit; }
@@ -87,9 +88,24 @@
   <h2>How it works</h2>
   <ol>
     <li><span>Share the link to what you used, the way you already do: <q>use this shader on the hero image</q>, <q>this hover is from @someone’s skill</q>, <q>I made these pictures with their generator</q>, or just <q>add credits to my site</q>.</span></li>
-    <li><span>Claude reads the link for the tool’s name, its maker and their profile, then tags the exact part of your site it made. If it can’t find the maker, it asks you instead of guessing.</span></li>
+    <li><span>Your agent reads the link for the tool’s name, its maker and their profile, and shows you what it could credit and where. You choose; it tags exactly those. If it can’t find the maker, it asks you instead of guessing.</span></li>
     <li><span>A small Shoutout button sits in your footer (or anywhere you choose on the page). Visitors press it and only the credited parts glow, each with its name and “by” its maker. Hover one for more. A credited hover or animation plays itself, slowly, so it’s easy to see. Tools you made the site with are listed under “Made with”.</span></li>
   </ol>
+
+  <h2>What you can credit</h2>
+  <p>Anything someone else made that’s on your site, and you choose what. Your agent finds what could be credited and lays out the options; you pick.</p>
+  <dl class="agents">
+    <dt>A part of the page</dt>
+    <dd>A component from a UI skill, a hover from a motion skill, a shader, an icon set. It glows, with its maker’s name.</dd>
+    <dt>Images and packs</dt>
+    <dd>Photos, illustrations and image packs are credited by their files, so every place they’re used lights up, even as your site changes. A pack of twelve glows together, and you can step through them one by one.</dd>
+    <dt>Textures</dt>
+    <dd>Grain, paper or noise across the page is everywhere, so it doesn’t glow. It shows a swatch instead, and a switch to see your page with and without it.</dd>
+    <dt>Credit inside your images</dt>
+    <dd>Many photos carry their photographer’s name inside the file, and Content Credentials record the tool that made an image, AI included. Your agent reads them and offers them to you.</dd>
+    <dt>Tools you made the site with</dt>
+    <dd>A plugin, a generator, a skill. They’re listed under “Made with”.</dd>
+  </dl>
 
   <h2>Install</h2>
   <p>Shoutout works with any coding agent. Add it once per agent, or once per project.</p>

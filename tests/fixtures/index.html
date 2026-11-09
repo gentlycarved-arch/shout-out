@@ -17,6 +17,10 @@
   #spin { animation: spin 3s linear infinite; background: #c93; }
   iframe { border: 0; }
   footer { padding: 16px; }
+  .papered { position: relative; height: 110px; width: 150px; background: #f1ede4; }
+  .papered::before { content: ""; position: absolute; inset: 0; background-image: url(paper.svg); background-repeat: repeat; }
+  .pack { display: flex; gap: 6px; }
+  .pack img { width: 30px; height: 30px; }
 </style>
 <script type="application/credits+json">
 { "credit": "1.0", "site": "Shoutout tests", "credits": [
@@ -33,7 +37,9 @@
   { "id": "scripted", "name": "Scripted hover", "author": "Ka", "replay": "hover-events" },
   { "id": "spin", "name": "Spin", "author": "Lu", "replay": "animation" },
   { "id": "font", "name": "A typeface", "author": "Mo" },
-  { "id": "plugin", "name": "Banknote Engraver", "author": "No Maker", "role": "tool", "url": "https://example.com/engraver" }
+  { "id": "plugin", "name": "Banknote Engraver", "author": "No Maker", "role": "tool", "url": "https://example.com/engraver" },
+  { "id": "paper", "name": "Paper grain", "author": "Texture Maker", "kind": "texture", "files": ["fixtures/paper.svg"], "note": "The grain on the paper card." },
+  { "id": "dots", "name": "Dot pack", "author": "Pack Maker", "kind": "image", "files": ["fixtures/pack/*.svg"] }
 ] }
 </script>
 </head>
@@ -51,6 +57,8 @@
   <button class="lift" data-credit="lift">Lift</button>
   <button id="scripted" data-credit="scripted">Scripted</button>
   <div id="spin" class="cell" data-credit="spin"></div>
+  <div id="papered" class="papered"></div>
+  <div class="pack" id="pack"><img src="pack/a.svg" alt=""><img src="pack/b.svg" alt=""><img src="pack/c.svg" alt=""><img src="pack/d.svg" alt=""></div>
 </main>
 <footer>Test footer</footer>
 <script>

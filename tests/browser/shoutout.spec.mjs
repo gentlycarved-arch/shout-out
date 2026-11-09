@@ -25,7 +25,7 @@ test.beforeEach(async ({ page }) => {
 
 test('loads, with its version', async ({ page }) => {
   expect(await page.evaluate(() => window.Shoutout.version)).toBe(pkg.version);
-  expect(await page.evaluate(() => window.Shoutout.credits.length)).toBe(14);
+  expect(await page.evaluate(() => window.Shoutout.credits.length)).toBe(16);
 });
 
 test('the Shoutout button sits in the footer and turns the fade on and off', async ({ page, isMobile }) => {
@@ -135,6 +135,7 @@ test('the list: every credit in one place; hovering a name lights only its parts
   expect(s.heads).toEqual(['On this page', 'Made with', 'Also']);
   expect(s.text).toContain('Banknote Engraver');
   expect(s.text).toContain('A typeface');
+  expect(s.text).not.toContain('null');
 
   const seal = page.locator('shoutout-layer .list .item[data-id="svg-circle"]');
   if (isMobile) await seal.tap(); else await seal.hover();
@@ -147,4 +148,50 @@ test('the list: every credit in one place; hovering a name lights only its parts
     await page.mouse.move(5, page.viewportSize().height - 5);
     await expect.poll(async () => (await state()).lit.length).toBeGreaterThan(5);
   }
+});
+
+test('credit by file: a pack lights every image that uses its files, with one pop-up at a time', async ({ page, isMobile }) => {
+  await openCredits(page, isMobile, '#pack');
+  const pack = () => layer(page, `return [...root.querySelectorAll('.mark')].filter((g) => g.querySelector('.title').textContent === 'Dot pack')
+    .map((g) => ({ quiet: g.classList.contains('quiet'), tag: getComputedStyle(g.querySelector('.tag')).display }))`);
+  const parts = await pack();
+  expect(parts).toHaveLength(4);
+  expect(parts.every((p) => p.quiet && p.tag === 'none')).toBe(true);
+  // the list says how many, and each click goes to the next one, showing only its pop-up
+  const toggle = page.locator('shoutout-layer .list .toggle');
+  if (isMobile) await toggle.tap(); else await toggle.click();
+  const item = page.locator('shoutout-layer .list .item[data-id="dots"]');
+  await expect(item).toContainText('4 images on this page');
+  if (isMobile) await item.tap(); else await item.click();
+  await expect.poll(async () => (await pack()).filter((p) => p.tag !== 'none').length).toBe(1);
+  if (isMobile) await item.tap(); else await item.click();
+  await expect.poll(async () => (await pack()).filter((p) => p.tag !== 'none').length).toBe(1);
+});
+
+test('a texture: no glow; its card shows a swatch and takes it off the page and back', async ({ page, isMobile }) => {
+  await openCredits(page, isMobile, '#papered');
+  const titles = await layer(page, "return [...root.querySelectorAll('.mark .title')].map((t) => t.textContent)");
+  expect(titles).not.toContain('Paper grain');
+  const toggle = page.locator('shoutout-layer .list .toggle');
+  if (isMobile) await toggle.tap(); else await toggle.click();
+  const item = page.locator('shoutout-layer .list .item[data-id="paper"]');
+  await expect(item).toContainText('A texture');
+  if (isMobile) await item.tap(); else await item.click();
+  const card = page.locator('shoutout-layer .list .card');
+  await expect(card).toBeVisible();
+  await expect(card).toContainText('Paper grain');
+  await expect(card).toContainText('Used in 1 place');
+  expect(await layer(page, "return root.querySelector('.fade').classList.contains('clear')")).toBe(true);
+  expect(await layer(page, "return root.querySelector('.card .swatch').style.backgroundImage")).toContain('paper.svg');
+  const grain = () => page.evaluate(() => getComputedStyle(document.getElementById('papered'), '::before').backgroundImage);
+  expect(await grain()).toContain('paper.svg');
+  const strip = page.locator('shoutout-layer .list .card .strip');
+  if (isMobile) await strip.tap(); else await strip.click();
+  await expect.poll(grain).toBe('none');
+  if (isMobile) await strip.tap(); else await strip.click();
+  await expect.poll(grain).toContain('paper.svg');
+  // closing Shoutout always puts it back
+  if (isMobile) await strip.tap(); else await strip.click();
+  await page.evaluate(() => window.Shoutout.close());
+  await expect.poll(grain).toContain('paper.svg');
 });

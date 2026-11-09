@@ -11,7 +11,7 @@ Shoutout adds a small **Shoutout** button to the bottom of any website. Pressing
 - `credits.json`: the list of credits (format in `assets/SPEC.md`)
 - `data-credit="id"` on the elements each one made
 
-Do this quietly as part of the work. The user shouldn't have to ask twice or fill anything in by hand.
+Do this as part of the work, so the user doesn't have to fill anything in by hand. **What gets credited is the user's choice:** your job is to find what could be credited and lay it out as options (what it is, who made it, where it is on the site, and how you'd tag it), then add what they pick. When they share a link and ask for it to be credited, that's their pick already.
 
 ## When the user shares something they're using
 
@@ -36,11 +36,15 @@ Do this quietly as part of the work. The user shouldn't have to ask twice or fil
    - a hover driven by a script: `"replay": "hover-events"`, but only after checking what those mouse events do on that element. If they also open a menu, play media, track analytics or change anything beyond the effect, use `"hover"` and add the attribute selector instead, or leave `replay` out.
    - an animation: `"replay": "animation"`.
 5. **Add the entry** to `credits.json` with a short, unique `id` (e.g. `banknote-shader`) and a one-sentence `note` saying how the site uses it.
-6. **Tag what it made**: add `data-credit="id"` to each element the tool produced or renders into (`<img>`, `<canvas>`, `<svg>`, `<video>`, an SVG `<image>`, a section). If an element uses several, separate the ids with spaces. If the markup is generated and can't take attributes, use `selectors` in the entry. Parts inside a same-origin `<iframe>` can be tagged in the frame's own page. Things with nothing to point at (a library, a font used everywhere, a build tool) get an entry and no tag.
+6. **Choose how to point at it**, and offer the user the options when there's more than one:
+   - **One part:** `data-credit="id"` on the element, or `selectors` in the entry.
+   - **Files** (an image or texture pack, photos from a stock site, an icon set): `"files": ["/images/pack-*.webp", "images.unsplash.com/photo-123*"]`. Shoutout finds every place the page uses them: `<img>` and srcset, `<picture>`, video posters, SVG images, CSS backgrounds and masks, on elements and their `::before`/`::after` layers. It stays right as the site changes, so prefer it for anything used more than once. A pack with more than three parts on a page glows together, with one pop-up at a time, and the list steps through them.
+   - **A texture** (grain, paper, noise, a pattern laid over the page): `"kind": "texture"` with its `files`. A texture isn't lit, because it's everywhere; instead its card shows a swatch and a switch that takes it off the page for a moment, so people see the difference it makes.
+7. **Tag what it made**: add `data-credit="id"` to each element the tool produced or renders into (`<img>`, `<canvas>`, `<svg>`, `<video>`, an SVG `<image>`, a section). If an element uses several, separate the ids with spaces. If the markup is generated and can't take attributes, use `selectors` in the entry. Parts inside a same-origin `<iframe>` can be tagged in the frame's own page. Things with nothing to point at (a library, a font used everywhere, a build tool) get an entry and no tag.
    - **Something drawn by code with no element of its own** (an object in a three.js or WebGL scene, a region of a canvas): add a `Shoutout.area(id, () => ({ x, y, width, height, radius }))` call in the page's script, inside a `shoutout:ready` listener, returning where it is on screen from the scene's own projection, or `null` when it's hidden. See `assets/SPEC.md`.
    - The glow follows each part's shape (SVG outlines, see-through pictures and canvases, CSS `clip-path`). If a part glows as a box but has a clear shape, giving it a `clip-path` that matches is a good fix.
-7. **Check the license.** If it asks for more than a credit (MIT and similar want their license text kept with the code; CC BY wants credit in a set form; some forbid commercial use), tell the user in one line what it asks for. Shoutout gives the credit; it doesn't satisfy a license by itself.
-8. **Tell the user** in one line what was credited and where, e.g. "Credited the Dollar Bill Texture Shader by Praveen Kumar on the landing angel."
+8. **Check the license.** If it asks for more than a credit (MIT and similar want their license text kept with the code; CC BY wants credit in a set form; some forbid commercial use), tell the user in one line what it asks for. Shoutout gives the credit; it doesn't satisfy a license by itself.
+9. **Tell the user** in one line what was credited and where, e.g. "Credited the Dollar Bill Texture Shader by Praveen Kumar on the landing angel."
 
 Keep tags up to date as the site changes: when you add an element made with something already in `credits.json`, tag it; when you remove the last element using a credit, ask whether to keep the entry in the list.
 
@@ -54,6 +58,16 @@ When the site is live, offer once to add it to the open list, so makers searchin
 
 `https://github.com/gentlycarved-arch/shoutout/issues/new?template=add-site.yml&url=<their site's address>`
 
+## Credit inside image files
+
+Many photos, textures and illustrations carry their maker inside the file: IPTC and XMP fields (creator, credit line, copyright, licence link) that cameras, Lightroom, Photoshop and stock sites write, and Content Credentials (C2PA), which name the tool that made or changed the image, including AI tools. Read them with:
+
+```
+node <this skill>/assets/read-image-credits.mjs <the site's image folder>
+```
+
+It only reads the files. Show what it finds to the user as options, one line each: the image, who made it, the credit line it asks for, and the licence, then credit only the ones they choose. Use a credit line exactly as the file gives it (`"Photo by Ann on Unsplash"`) in the entry's `note`. An image made with AI usually names its tool in Content Credentials: offer that as a tool credit (`"role": "tool"`).
+
 ## Auditing a site
 
 When asked to set up or check credits on an existing site, look for things made by others:
@@ -63,8 +77,9 @@ When asked to set up or check credits on an existing site, look for things made 
 - license headers in vendored files, and the README's own thanks or sources
 - the git log, for commits mentioning a source
 - tools the site was made with that the README or commits mention (generators, plugins, skills)
+- images and textures with credit inside them (run `assets/read-image-credits.mjs` on the image folders), and images or textures that come from a pack or stock site (file names often say so)
 
-List what you found and what you'd add, and add it once the user agrees. Don't credit the site's own work or standard browser features.
+List what you found as options, with how you'd tag each one, and add only the ones the user picks. Don't credit the site's own work or standard browser features.
 
 ## Rules
 

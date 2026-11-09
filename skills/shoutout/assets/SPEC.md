@@ -66,9 +66,10 @@ The `<link rel="credits">` line is recommended even when the script isn't used, 
 | `role` | no | `"part"` (the default): something on the page was made with it. `"tool"`: a tool the site was made with, such as a plugin, a generator, an app or an AI skill. A tool can still tag the parts it made; with nothing tagged it's listed under "Made with" |
 | `replay` | no | For a credit that's a motion: `"hover"`, `"hover-events"` or `"animation"` (see *Motion*) |
 | `license` | no | The license or terms, e.g. `MIT`, `CC BY 4.0`, `Figma Community`, `free to use` |
-| `kind` | no | What it is: `shader`, `ui`, `font`, `library`, `image`, `icon`, `animation`, `motion`, `plugin`, `skill`, `template`, `code`, `music` and so on |
+| `kind` | no | What it is: `shader`, `ui`, `font`, `library`, `image`, `icon`, `animation`, `motion`, `plugin`, `skill`, `template`, `code`, `music` and so on. `texture` gets a swatch and a with-and-without switch instead of a glow |
 | `note` | no | How the site used it, in one sentence. Shown on hover when there's no `about` |
 | `selectors` | no | CSS selectors for the parts of the page it made, for sites that can't add attributes to their markup |
+| `files` | no | The files it covers, for images, textures, packs and icon sets: `["/textures/paper-*.png", "images.unsplash.com/photo-123*"]`. Every place the page uses them is found (see *Credit by file*) |
 
 Readers ignore fields they don't know, so a site can add its own.
 
@@ -94,6 +95,20 @@ An element made with several tools lists them all, separated by spaces: `data-cr
 | An element with a CSS `clip-path` of `circle()`, `ellipse()`, `inset()` or `polygon()` | that shape |
 | A wrapper with no fill or border of its own | the icons, pictures and canvases inside it |
 | Anything else | its box, with its own rounded corners |
+
+### Credit by file
+
+A credit with `files` lights every part of the page that uses them, without tagging each one, and stays right as the site changes. Shoutout looks in `<img>` and `srcset`, `<picture>` sources, video posters, SVG `<image>`, and CSS backgrounds, masks and border images, on elements and on their `::before` and `::after` layers (a layer lights the element it sits on).
+
+A pattern with a host (`images.unsplash.com/photo-123*`) is matched against the file's host and path; anything else against its path, from the end, so `textures/paper.png` matches `/assets/textures/paper.png`. `*` matches anything.
+
+**Packs.** A credit with more than three parts on a page (a photo pack, an illustration set) glows everywhere at once, but only the part under the cursor shows its pop-up. In the list it says how many there are ("12 images on this page"), and each click goes to the next one.
+
+**Textures.** A texture is usually everywhere, so lighting it says nothing. A credit with `"kind": "texture"` isn't lit: in the list, it brings the page back clear and opens a card with the texture's name and maker, a swatch of it, and a switch that takes it off the page for a moment and puts it back, so people see the difference it makes. Closing Shoutout always puts it back.
+
+### Credit inside image files
+
+Many images carry their maker inside the file: IPTC and XMP fields (creator, credit line, copyright, licence link) and Content Credentials (C2PA), which record the tool that made an image, including AI tools. The skill's `assets/read-image-credits.mjs` reads them from a folder and lists what it finds, for the site's owner to choose from. A credit line given in a file (`"Photo by Ann on Unsplash"`) is best used word for word, in the credit's `note`.
 
 ### Parts drawn by code
 
@@ -179,7 +194,7 @@ Shoutout follows [semantic versioning](https://semver.org). `Shoutout.version` s
 
 ```html
 <!-- one version, never changes -->
-<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@v2.4.0/shoutout.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@v2.5.0/shoutout.js" defer></script>
 <!-- the latest 2.x: fixes arrive by themselves, nothing breaks -->
 <script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@2/shoutout.js" defer></script>
 ```

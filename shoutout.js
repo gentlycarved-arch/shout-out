@@ -1,8 +1,8 @@
-/*! Shoutout 2.4.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
+/*! Shoutout 2.5.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
 (() => {
   'use strict';
   if (window.Shoutout) return;
-  const VERSION = '2.4.0';
+  const VERSION = '2.5.0';
 
   const script = document.currentScript;
   const opt = (name, fallback) => (script && script.getAttribute('data-' + name)) || fallback;
@@ -36,6 +36,9 @@
         note: c.note ? String(c.note).trim().slice(0, 200) : '',
         url: isUrl(c.url) ? c.url : isUrl(c.authorUrl) ? c.authorUrl : '',
         selectors: [].concat(c.selectors || []).map(String),
+        files: [].concat(c.files || []).map(String).filter(Boolean),
+        kind: typeof c.kind === 'string' ? c.kind.toLowerCase() : '',
+        texture: c.kind === 'texture' || c.texture === true,
         role: c.role === 'tool' ? 'tool' : 'part',   // a tool you made the site with, or a part of the site
         replay: ['hover', 'hover-events', 'animation'].includes(c.replay) ? c.replay : '',
       }));
@@ -50,8 +53,67 @@
     return out;
   }
 
+  // ---------- credit by file ----------
+  // A credit can list the files it covers ("files": ["/textures/paper-*.png", "images.unsplash.com/photo-123*"]).
+  // Every place the page uses them is found: <img> and srcset, <picture>, video posters, SVG <image>, and CSS
+  // backgrounds, masks and border images, on elements and on their ::before and ::after layers.
+  // A pattern with a host (a dot in its first part) is matched against host and path; anything else against the path,
+  // from the end ("textures/paper.png" matches ".../assets/textures/paper.png"). * matches anything.
+  function fileTest(pattern) {
+    const p = pattern.trim().replace(/^https?:\/\//i, '').replace(/^\/\//, '');
+    const esc = (x) => x.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+    const hasHost = /^[^/]*\.[a-z]{2,}\//i.test(p);   // "cdn.site.com/…" has a host; "paper.png" and "textures/paper.png" don't
+    const re = hasHost ? new RegExp('^' + esc(p) + '$', 'i') : new RegExp((p.startsWith('/') ? '^' : '(^|/)') + esc(p.replace(/^\//, p.startsWith('/') ? '/' : '')) + '$');
+    return (u) => {
+      try {
+        const x = new URL(u, document.baseURI);
+        return hasHost ? re.test(x.host + x.pathname + x.search) || re.test(x.host + x.pathname) : re.test(x.pathname);
+      } catch { return false; }
+    };
+  }
+  const URLS = /url\(\s*(['"]?)(.*?)\1\s*\)/g;
+  const cssUrls = (v) => (v && v !== 'none' ? [...v.matchAll(URLS)].map((m) => m[2]) : []);
+  let fileUses = null;   // [{ el, how: 'img' | 'self' | 'before' | 'after', url }] for this pass
+  function scanFiles() {
+    if (fileUses) return fileUses;
+    fileUses = [];
+    for (const doc of documents()) {
+      const base = doc.baseURI, abs = (u) => { try { return new URL(u, base).href; } catch { return null; } };
+      const all = doc.body ? doc.body.querySelectorAll('*') : [];
+      let n = 0;
+      for (const el of all) {
+        if (++n > 6000) break;   // a very large page: the first 6000 elements are enough
+        if (el.closest('shoutout-layer, shoutout-button, font-tool')) continue;
+        const push = (how, u) => { const a = u && abs(u); if (a && !a.startsWith('data:')) fileUses.push({ el, how, url: a }); };
+        if (el.localName === 'img') { push('img', el.currentSrc || el.src); for (const part of (el.getAttribute('srcset') || '').split(',')) push('img', part.trim().split(/\s+/)[0]); }
+        if (el.localName === 'source' && el.parentElement && el.parentElement.localName === 'picture') {
+          const img = el.parentElement.querySelector('img');
+          if (img) for (const part of (el.getAttribute('srcset') || '').split(',')) { const u = abs(part.trim().split(/\s+/)[0]); if (u) fileUses.push({ el: img, how: 'img', url: u }); }
+        }
+        if (el.localName === 'video') { push('img', el.getAttribute('poster')); push('img', el.currentSrc || el.getAttribute('src')); }
+        if (el.localName === 'image' && el.namespaceURI === ns) push('img', el.href && el.href.baseVal);
+        const win = doc.defaultView;
+        const own = win.getComputedStyle(el);
+        for (const prop of ['backgroundImage', 'maskImage', 'webkitMaskImage', 'borderImageSource']) for (const u of cssUrls(own[prop])) push('self', u);
+        for (const pseudo of ['before', 'after']) {
+          const ps = win.getComputedStyle(el, '::' + pseudo);
+          if (!ps || ps.content === 'none' || ps.content === 'normal') continue;   // no ::before or ::after drawn
+          for (const prop of ['backgroundImage', 'maskImage', 'webkitMaskImage']) for (const u of cssUrls(ps[prop])) push(pseudo, u);
+        }
+      }
+    }
+    return fileUses;
+  }
+  function usesOf(credit) {
+    if (!credit.files.length) return [];
+    const tests = credit.files.map(fileTest);
+    return scanFiles().filter((f) => tests.some((t) => t(f.url)));
+  }
+
   function targetsOf(credit) {
     const found = new Set();
+    // a file used as a picture or an element's own background lights that element; a ::before or ::after layer lights the element it sits on
+    for (const f of usesOf(credit)) found.add(f.el);
     for (const doc of documents()) {
       doc.querySelectorAll('[data-credit]').forEach((el) => {
         if (el.getAttribute('data-credit').split(/\s+/).includes(credit.id)) found.add(el);
@@ -159,6 +221,11 @@ a { color: inherit; text-decoration: none; }
 .tag .about { padding-top: 4px; }
 .tag .about { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 .mark.dim .tag { display: none; }
+/* a pack (more than three parts from one credit): every part glows, only the one you're on shows its pop-up */
+.mark.quiet .tag { display: none; }
+.mark.quiet.show:not(.dim) .tag { display: flex; }
+/* a texture isn't lit: the page comes back clear, and its card shows a swatch and a with-and-without switch */
+.fade.on.clear { opacity: 0; }
 /* the list of every credit: a small white square at the top that drops down; hovering a name lights only its parts */
 .list { position: fixed; z-index: 2147483003; left: 50%; top: 16px; transform: translateX(-50%); width: min(300px, calc(100vw - 32px));
   background: var(--_pop-bg); color: var(--_pop-fg); font-size: 13px; line-height: 1.35; animation: in .4s ease .08s both; }
@@ -170,7 +237,12 @@ a { color: inherit; text-decoration: none; }
 .list .scroll { max-height: min(50vh, 360px); overflow-y: auto; padding-bottom: 6px; }
 .list .head { color: var(--_pop-muted); padding: 8px 12px 2px; }
 .list .item { display: block; width: 100%; font: inherit; color: inherit; background: none; border: 0; border-radius: 0; padding: 6px 12px; text-align: left; text-decoration: none; cursor: pointer; }
-.list .item .by { display: block; color: var(--_pop-muted); }
+.list .item .by, .list .item .count { display: block; color: var(--_pop-muted); }
+.list .card { border-top: 1px solid color-mix(in srgb, var(--_pop-fg) 14%, transparent); padding: 10px 12px 12px; }
+.list .card .by, .list .card .about, .list .card .count { display: block; color: var(--_pop-muted); }
+.list .card .swatch { height: 120px; margin: 10px 0; background-color: #ffffff; background-repeat: repeat; background-position: 0 0; border: 1px solid color-mix(in srgb, var(--_pop-fg) 14%, transparent); }
+.list .card .strip { font: inherit; color: inherit; background: none; border: 1px solid color-mix(in srgb, var(--_pop-fg) 35%, transparent); border-radius: 0; padding: 5px 10px; cursor: pointer; }
+.list .card .strip:focus-visible { outline: 1px solid var(--_pop-fg); outline-offset: 2px; }
 .list .item:hover, .list .item:focus-visible, .list .item.on { background: color-mix(in srgb, var(--_pop-fg) 7%, transparent); outline: none; }
 @keyframes in { from { opacity: 0; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -610,6 +682,7 @@ a { color: inherit; text-decoration: none; }
   function dropProxies() { proxies.forEach((p) => p.remove()); proxies = []; }
 
   function mark() {
+    fileUses = null;   // look again: the page may have changed
     dropProxies();
     holes.textContent = '';
     halos.textContent = '';
@@ -617,8 +690,11 @@ a { color: inherit; text-decoration: none; }
     imported = new Map();
     layer.textContent = '';
     marks = [];
+    textureUses = new Map();
     for (const credit of credits) {
+      if (credit.texture) { textureUses.set(credit, usesOf(credit)); continue; }
       const els = targetsOf(credit).concat((areas.get(credit.id) || []).map(proxyFor));
+      const pack = els.length > 3;
       for (const el of els) {
         const box = h('div', { class: 'box', part: 'outline', tabindex: '0', role: 'img', 'aria-label': 'Made with ' + credit.name + (credit.author ? ' by ' + credit.author : '') });
         const about = credit.about || credit.note, link = credit.url;
@@ -626,11 +702,11 @@ a { color: inherit; text-decoration: none; }
         const by = credit.author ? h('span', { class: 'by' }, h('span', {}, 'by ' + credit.author)) : null;
         const tag = h('div', { class: 'tag', part: 'label' }, title, by,
           about ? h('div', { class: 'more' }, h('div', {}, h('span', { class: 'about' }, about))) : null);
-        const group = h('div', { class: 'mark' }, box, tag);
+        const group = h('div', { class: pack ? 'mark quiet' : 'mark' }, box, tag);
         tag.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') hover(mark); });
         tag.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') hover(null); });
         layer.append(group);
-        const mark = { credit, el, box, tag, title, by, group, shape: makeShape(el, true), r: null };
+        const mark = { credit, el, box, tag, title, by, group, pack, shape: makeShape(el, true), r: null };
         marks.push(mark);
       }
     }
@@ -643,34 +719,89 @@ a { color: inherit; text-decoration: none; }
   // ---------- the list ----------
   // Every credit, in one place: the parts on this page (hover a name and only its parts stay lit; click it to go
   // there), then the tools the site was made with, then anything else (a font, a library).
-  let focused = null;
-  function focusCredit(c) {
+  let focused = null, pinned = null, textureUses = new Map(), stripped = null, cardEl = null;
+  const steps = new Map();   // credit -> which of its parts the list last stepped to
+  const partsOf = (c) => marks.filter((m) => m.credit === c);
+  const noun = (c, n) => (/image|photo|picture|illustration/.test(c.kind) ? (n === 1 ? 'image' : 'images') : /icon/.test(c.kind) ? (n === 1 ? 'icon' : 'icons') : (n === 1 ? 'place' : 'places'));
+
+  function focusCredit(c, only) {
     focused = c;
+    const texture = !!(c && c.texture);
+    fade.classList.toggle('clear', texture);
     for (const m of marks) {
       if (!m.credit) continue;
-      m.dim = !!c && m.credit !== c;
+      m.dim = !!c && (texture || m.credit !== c);
       m.group.classList.toggle('dim', m.dim);
-      m.group.classList.toggle('show', (!!c && m.credit === c) || m === shownMark);
+      const mine = !!c && !texture && m.credit === c && (!m.pack || m === only);
+      m.group.classList.toggle('show', mine || (m === shownMark && !m.dim));
     }
     if (listEl) for (const b of listEl.querySelectorAll('.item[data-id]')) b.classList.toggle('on', !!c && b.dataset.id === c.id);
+    if (stripped && stripped !== c) strip(stripped, false);
+    showCard(texture ? c : null);
   }
+
+  // a texture's card: what it is, who made it, a swatch, and a switch to see the page with and without it
+  function showCard(c) {
+    if (!cardEl) return;
+    cardEl.hidden = !c;
+    if (!c) return;
+    const uses = textureUses.get(c) || [];
+    const link = c.url ? h('a', { class: 'title', href: c.url, target: '_blank', rel: 'noopener' }, c.name) : h('span', { class: 'title' }, c.name);
+    const swatch = h('div', { class: 'swatch', role: 'img', 'aria-label': 'A sample of ' + c.name });
+    if (uses[0]) {
+      swatch.style.backgroundImage = `url("${uses[0].url.replace(/"/g, '%22')}")`;
+      if (uses[0].how === 'img') { swatch.style.backgroundSize = 'contain'; swatch.style.backgroundRepeat = 'no-repeat'; swatch.style.backgroundPosition = 'center'; }
+    }
+    const btn = h('button', { class: 'strip', type: 'button', 'aria-pressed': String(stripped === c) }, stripped === c ? 'Show it again' : 'See the page without it');
+    btn.addEventListener('click', () => { strip(c, stripped !== c); showCard(c); });
+    cardEl.textContent = '';
+    cardEl.append(h('strong', {}, link), c.author ? h('span', { class: 'by' }, 'by ' + c.author) : null,
+      c.about || c.note ? h('span', { class: 'about' }, c.about || c.note) : null, swatch, btn,
+      h('span', { class: 'count' }, 'Used in ' + uses.length + ' ' + (uses.length === 1 ? 'place' : 'places') + ' on this page'));
+  }
+
+  // take a texture off the page for a moment, and put it back
+  const STRIP_CSS = '[data-shoutout-strip~="self"]{background-image:none!important;-webkit-mask-image:none!important;mask-image:none!important;border-image-source:none!important}'
+    + '[data-shoutout-strip~="before"]::before,[data-shoutout-strip~="after"]::after{background-image:none!important;-webkit-mask-image:none!important;mask-image:none!important}'
+    + '[data-shoutout-strip~="img"]{visibility:hidden!important}';
+  function strip(c, on) {
+    const uses = (c && textureUses.get(c)) || [];
+    for (const doc of documents()) {
+      if (on && doc.head && !doc.getElementById('shoutout-strip')) { const st = doc.createElement('style'); st.id = 'shoutout-strip'; st.textContent = STRIP_CSS; doc.head.append(st); }
+    }
+    for (const u of uses) {
+      const ways = new Set((u.el.getAttribute('data-shoutout-strip') || '').split(' ').filter(Boolean));
+      if (on) ways.add(u.how); else ways.delete(u.how);
+      if (ways.size) u.el.setAttribute('data-shoutout-strip', [...ways].join(' ')); else u.el.removeAttribute('data-shoutout-strip');
+    }
+    stripped = on ? c : null;
+  }
+
   let listEl = null;
   function buildList() {
-    const placed = credits.filter((c) => marks.some((m) => m.credit === c && visibleRect(m.el)));
+    const placed = credits.filter((c) => (c.texture ? (textureUses.get(c) || []).length : marks.some((m) => m.credit === c && visibleRect(m.el))));
     const rest = credits.filter((c) => !placed.includes(c));
     const tools = rest.filter((c) => c.role === 'tool'), other = rest.filter((c) => c.role !== 'tool');
-    const row = (c, el) => { el.append(h('span', {}, c.name), c.author ? h('span', { class: 'by' }, 'by ' + c.author) : null); return el; };
+    const row = (c, el, extra) => { el.append(...[h('span', {}, c.name), c.author ? h('span', { class: 'by' }, 'by ' + c.author) : null, extra ? h('span', { class: 'count' }, extra) : null].filter(Boolean)); return el; };
     const scroll = h('div', { class: 'scroll' });
+    const smooth = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
     if (placed.length) {
       if (rest.length) scroll.append(h('div', { class: 'head' }, 'On this page'));
       for (const c of placed) {
-        const b = row(c, h('button', { class: 'item', type: 'button', 'data-id': c.id }));
-        b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') focusCredit(c); });
-        b.addEventListener('focus', () => focusCredit(c));
+        const parts = partsOf(c), n = parts.length;
+        const extra = c.texture ? 'A texture: see it with and without' : n > 3 ? `${n} ${noun(c, n)} on this page: click to go through them` : '';
+        const b = row(c, h('button', { class: 'item', type: 'button', 'data-id': c.id }), extra);
+        b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse' && !pinned) focusCredit(c); });
+        b.addEventListener('focus', () => { if (!pinned) focusCredit(c); });
         b.addEventListener('click', () => {
-          focusCredit(c);
-          const m = marks.find((x) => x.credit === c);
-          if (m) m.el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+          if (c.texture) { pinned = pinned === c ? null : c; focusCredit(pinned || c); return; }
+          pinned = null;
+          // a pack: each click goes to the next of its parts; anything else: to its first part
+          const i = n > 3 ? ((steps.get(c) ?? -1) + 1) % n : 0;
+          steps.set(c, i);
+          const m = parts[i];
+          focusCredit(c, m);
+          if (m) m.el.scrollIntoView({ behavior: smooth(), block: 'center' });
         });
         scroll.append(b);
       }
@@ -678,16 +809,18 @@ a { color: inherit; text-decoration: none; }
     if (tools.length) { scroll.append(h('div', { class: 'head' }, 'Made with')); for (const c of tools) scroll.append(row(c, ext(c.url, 'item'))); }
     if (other.length) { scroll.append(h('div', { class: 'head' }, 'Also')); for (const c of other) scroll.append(row(c, ext(c.url, 'item'))); }
     const toggle = h('button', { class: 'toggle', type: 'button', 'aria-expanded': 'false' }, 'All shoutouts', h('span', {}, String(credits.length)));
-    listEl = h('div', { class: 'list', part: 'list' }, toggle, h('div', { class: 'body' }, h('div', { inert: '' }, scroll)));
+    cardEl = h('div', { class: 'card', 'aria-live': 'polite' });
+    cardEl.hidden = true;
+    listEl = h('div', { class: 'list', part: 'list' }, toggle, h('div', { class: 'body' }, h('div', { inert: '' }, scroll)), cardEl);
     toggle.addEventListener('click', () => {
       const open = !listEl.classList.contains('open');
       listEl.classList.toggle('open', open);
       toggle.setAttribute('aria-expanded', String(open));
       listEl.querySelector('.body > div').inert = !open;
-      if (!open) focusCredit(null);
+      if (!open) { pinned = null; focusCredit(null); }
     });
-    listEl.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') focusCredit(null); });
-    listEl.addEventListener('focusout', (e) => { if (!listEl.contains(e.relatedTarget)) focusCredit(null); });
+    listEl.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse' && !pinned) focusCredit(null); });
+    listEl.addEventListener('focusout', (e) => { if (!listEl.contains(e.relatedTarget) && !pinned) focusCredit(null); });
     layer.append(listEl);
   }
 
@@ -811,10 +944,14 @@ a { color: inherit; text-decoration: none; }
     active = false;
     stopReplays();
     fade.classList.remove('on');
+    if (stripped) strip(stripped, false);
+    fade.classList.remove('clear');
     layer.textContent = '';
     shownMark = null;
     focused = null;
+    pinned = null;
     listEl = null;
+    cardEl = null;
     hideTimer = setTimeout(() => {
       cancelAnimationFrame(frame);
       fade.style.display = 'none';
@@ -869,7 +1006,8 @@ a { color: inherit; text-decoration: none; }
     syncButtons();
     setMode();
     if (active) {
-      const now = credits.flatMap((c) => targetsOf(c));
+      fileUses = null;
+      const now = credits.flatMap((c) => (c.texture ? [] : targetsOf(c)));
       const had = marks.filter((m) => m.credit && !m.el.hasAttribute('data-shoutout-area')).map((m) => m.el);
       if (now.length !== had.length || now.some((el, i) => el !== had[i])) refresh();
     }
