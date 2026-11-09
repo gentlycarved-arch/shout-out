@@ -150,8 +150,6 @@ cp -R shoutout/skills/shoutout ~/.claude/skills/</code></pre>
     <dd><a href="make.html">Make your credits here</a> and paste one snippet into Framer, Webflow, Squarespace or Wix.</dd>
   </dl>
 
-  <h2>For makers</h2>
-  <p>Made a shader, a skill or a tool that people use? <a href="maker.html">Make your maker card</a>: who you are, a line about you, and how you’d like to be credited. When someone credits your work with Shoutout, their agent reads your card first, so it’s your words that show. Your card also puts you in <a href="discover.html">Discover</a>, where people find makers and their work, and see the sites that gave them a shoutout. Rather not be found? You can be left out.</p>
 </main>
 <footer>
   <button class="see" type="button" aria-expanded="false" aria-controls="find">See who gave you a shoutout</button>
@@ -179,7 +177,16 @@ cp -R shoutout/skills/shoutout ~/.claude/skills/</code></pre>
     inner.inert = !open;
     if (!open) return;
     $('q').focus({ preventScroll: true });
-    find.addEventListener('transitionend', () => find.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), { once: true });
+    // the page scrolls down along with the search as it opens, frame by frame, so all of it ends up in view
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const until = performance.now() + 700, footer = document.querySelector('footer');
+      const follow = () => {
+        const over = footer.getBoundingClientRect().bottom + 24 - innerHeight;
+        if (over > 0) scrollBy(0, Math.ceil(over));
+        if (performance.now() < until) requestAnimationFrame(follow);
+      };
+      requestAnimationFrame(follow);
+    } else find.scrollIntoView({ block: 'nearest' });
     index ??= fetch('index.json').then((r) => r.json()).catch(() => ({ sites: [] })).then((d) => {
       $('status').textContent = d.sites.length ? d.sites.length + (d.sites.length === 1 ? ' site is' : ' sites are') + ' listed.' : 'No sites are listed yet.';
       return d;
