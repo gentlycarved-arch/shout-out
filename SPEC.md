@@ -77,7 +77,7 @@ Credits that make nothing you can point to (a library, a build tool, a font used
 
 **Recommended: at the bottom of the page.** By default `flowers.js` puts a small Credits button centred inside the site's `<footer>`, or at the very end of the page if there's no footer.
 
-Pressing it fades the page to dark, except for the parts made with credited tools. Those glow softly, each with a small white title (the tool's `name`, linking to the original). Hovering one (tapping it on a phone, or tabbing to it) opens the title up to show "Flowers to" the maker's name and their short bio, if there is one. Credits with nothing to point at on the page (a font, a library) are listed in one line at the bottom. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
+Pressing it fades the page to dark, except for the parts made with credited tools. Those glow softly, each with a small dark-glass title just below it, pointing at it (the tool's `name`, linking to the original). Hovering one (tapping it on a phone, or tabbing to it) opens the title up to show "Flowers to" the maker's name and their short bio, if there is one. Credits with nothing to point at on the page (a font, a library) are listed in one line at the bottom. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
 
 The pop-up shows only `name`, `author`, `about` and `url`; `replay` drives the motion replay (or `authorUrl` when there's no `url`). The other fields are there for other tools and for anyone reading the file.
 
@@ -109,7 +109,7 @@ To match a site, set these custom properties anywhere in its CSS (usually `:root
 | `--flowers-fade` | how far it fades, 0 to 1 | `0.82` |
 | `--flowers-accent` | the glow | white |
 | `--flowers-bg`, `--flowers-fg` | the button and its text | white and black (dark in dark mode) |
-| `--flowers-popup-bg`, `--flowers-popup-fg`, `--flowers-popup-muted` | the hover pop-ups, their text, and the link | white, black, grey |
+| `--flowers-popup-bg`, `--flowers-popup-fg`, `--flowers-popup-muted`, `--flowers-popup-border` | the pop-overs, their text, the maker line, and their edge | dark glass, near-white, soft grey, faint white |
 | `--flowers-font`, `--flowers-radius` | the type, and the rounding of the button | Helvetica, 999px |
 
 From the page's own scripts: `Flowers.open()`, `Flowers.close()`, `Flowers.toggle()`, `Flowers.isOpen`, `Flowers.credits`. The document gets a `flowers:toggle` event each time. A link to `page.html#flowers` opens the page with credits already showing.
