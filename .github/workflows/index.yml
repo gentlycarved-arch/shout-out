@@ -4,11 +4,15 @@ on:
     - cron: '17 4 * * *'
   workflow_dispatch:
   push:
+    branches: [main]
     paths: ['registry/sites.txt']
 permissions:
   contents: write
+concurrency: registry
 jobs:
   index:
+    # only on main: a tag or another branch has nowhere to save the list
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

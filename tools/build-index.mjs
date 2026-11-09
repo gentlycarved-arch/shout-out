@@ -28,5 +28,13 @@ for (const site of [...new Set(list)]) {
 }
 
 await mkdir(new URL('../docs/', import.meta.url), { recursive: true });
-await writeFile(new URL('../docs/index.json', import.meta.url), JSON.stringify({ generated: new Date().toISOString(), sites }, null, 1) + '\n');
+const target = new URL('../docs/index.json', import.meta.url);
+// only write when the list itself changed, so a quiet night doesn't make a commit just to update the date
+let before = null;
+try { before = JSON.parse(await readFile(target, 'utf8')); } catch { /* first run */ }
+if (before && JSON.stringify(before.sites) === JSON.stringify(sites)) {
+  console.log(`\nNo changes: ${sites.length} sites, ${sites.reduce((n, s) => n + s.credits.length, 0)} credits.`);
+  process.exit(0);
+}
+await writeFile(target, JSON.stringify({ generated: new Date().toISOString(), sites }, null, 1) + '\n');
 console.log(`\nWrote docs/index.json: ${sites.length} sites, ${sites.reduce((n, s) => n + s.credits.length, 0)} credits.`);
