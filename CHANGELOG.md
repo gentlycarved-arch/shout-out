@@ -2,6 +2,10 @@
 
 Shoutout follows [semantic versioning](https://semver.org): within a major version, a release never breaks a site that worked with an earlier one. The `credits.json` format has its own version; `"credit": "1.0"` files are read by every release.
 
+## 2.1.0
+
+- **The list:** with Credits on, an "All credits" square at the top drops down to every credit on the site: the parts on this page, then "Made with" (the tools the site was made with), then "Also" (a font, a library). Hovering a name, or tabbing to it, keeps only that credit's parts lit and opens their pop-ups; everything else goes back under the fade. Clicking a name scrolls to its part. This replaces the one line at the bottom.
+
 ## 2.0.0
 
 Flowers is now **Shoutout**: shoutout designers & makers on your website.

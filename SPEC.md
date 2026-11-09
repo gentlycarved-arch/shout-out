@@ -124,7 +124,7 @@ A credit that's a motion (a hover effect, a transition, an animation) can play b
 
 **Recommended: at the bottom of the page.** By default `shoutout.js` puts a small Credits button centred inside the site's `<footer>`, or at the very end of the page if there's no footer.
 
-Pressing it fades the page to dark, except for the credited parts. Those glow in their own shape, each with a small white square just below it: the tool's `name` (linking to the original) and, under it, "by" the maker. Hovering one (tapping it on a phone, or tabbing to it) grows it, smoothly, to show the maker's bio, or the credit's `note` when there's no bio. Credits with nothing to point at are listed in one line at the bottom: the tools the site was made with under "Made with", then anything else (a font, a library) under "Also". Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
+Pressing it fades the page to dark, except for the credited parts. Those glow in their own shape, each with a small white square just below it: the tool's `name` (linking to the original) and, under it, "by" the maker. Hovering one (tapping it on a phone, or tabbing to it) grows it, smoothly, to show the maker's bio, or the credit's `note` when there's no bio. At the top, an "All credits" square drops down to every credit on the site: the parts on this page, then the tools the site was made with under "Made with", then anything else (a font, a library) under "Also". Hovering a name keeps only that credit's parts lit, with their pop-ups open, and clicking it scrolls to the part. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
 
 To choose the place yourself, mark it with `data-shoutout-button`:
 
@@ -178,7 +178,7 @@ Shoutout follows [semantic versioning](https://semver.org). `Shoutout.version` s
 
 ```html
 <!-- one version, never changes -->
-<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@v2.0.0/shoutout.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@v2.1.0/shoutout.js" defer></script>
 <!-- the latest 2.x: fixes arrive by themselves, nothing breaks -->
 <script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@2/shoutout.js" defer></script>
 ```

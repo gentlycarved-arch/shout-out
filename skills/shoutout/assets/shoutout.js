@@ -1,8 +1,8 @@
-/*! Shoutout 2.0.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
+/*! Shoutout 2.1.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
 (() => {
   'use strict';
   if (window.Shoutout) return;
-  const VERSION = '2.0.0';
+  const VERSION = '2.1.0';
 
   const script = document.currentScript;
   const opt = (name, fallback) => (script && script.getAttribute('data-' + name)) || fallback;
@@ -145,12 +145,23 @@ a { color: inherit; text-decoration: none; }
 .tag .by { color: var(--_pop-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tag .about { padding-top: 4px; }
 .tag .about { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
-.also { position: fixed; z-index: 2147483001; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 6px 14px; border-radius: 0; background: var(--_pop-bg); color: var(--_pop-muted); text-align: center; animation: in .4s ease .08s both; }
-.also a { color: var(--_pop-fg); }
-.also a:hover { text-decoration: underline; }
+.mark.dim .tag { display: none; }
+/* the list of every credit: a small white square at the top that drops down; hovering a name lights only its parts */
+.list { position: fixed; z-index: 2147483003; left: 50%; top: 16px; transform: translateX(-50%); width: min(300px, calc(100vw - 32px));
+  background: var(--_pop-bg); color: var(--_pop-fg); font-size: 13px; line-height: 1.35; animation: in .4s ease .08s both; }
+.list .toggle { display: flex; justify-content: space-between; gap: 12px; width: 100%; font: inherit; font-weight: 700; color: inherit; background: none; border: 0; border-radius: 0; padding: 8px 12px; cursor: pointer; text-align: left; }
+.list .toggle span { color: var(--_pop-muted); font-weight: 400; }
+.list .body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .6s var(--_ease); }
+.list.open .body { grid-template-rows: 1fr; }
+.list .body > div { min-height: 0; overflow: hidden; }
+.list .scroll { max-height: min(50vh, 360px); overflow-y: auto; padding-bottom: 6px; }
+.list .head { color: var(--_pop-muted); padding: 8px 12px 2px; }
+.list .item { display: block; width: 100%; font: inherit; color: inherit; background: none; border: 0; border-radius: 0; padding: 6px 12px; text-align: left; text-decoration: none; cursor: pointer; }
+.list .item .by { display: block; color: var(--_pop-muted); }
+.list .item:hover, .list .item:focus-visible, .list .item.on { background: color-mix(in srgb, var(--_pop-fg) 7%, transparent); outline: none; }
 @keyframes in { from { opacity: 0; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-@media (prefers-reduced-motion: reduce) { .fade, .tag, .tag .more, .tag .more > div { transition: none; } .box, .tag, .also, .fade.on .halos { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .fade, .tag, .tag .more, .tag .more > div { transition: none; } .box, .tag, .list, .fade.on .halos { animation: none; } .list .body { transition: none; } }
 `;
 
   const h = (tag, attrs = {}, ...kids) => {
@@ -165,8 +176,6 @@ a { color: inherit; text-decoration: none; }
     return el;
   };
   const ext = (href, cls, ...kids) => (href ? h('a', { class: cls, href, target: '_blank', rel: 'noopener' }, ...kids) : h('span', { class: cls }, ...kids));
-  // "Name by Author"
-  const words = (c, cls) => ext(c.url, cls, c.name, c.author ? h('span', {}, ' by ' + c.author) : null);
 
   function shadowHost(name) {
     const host = document.createElement(name);
@@ -568,18 +577,58 @@ a { color: inherit; text-decoration: none; }
     keepLit = keepLit.filter((el) => el.isConnected);
     for (const el of keepLit.concat(triggers.filter((t) => t.getRootNode() === document))) marks.push({ credit: null, el, shape: makeShape(el, false) });
 
-    // credits with nothing to point at on this page go in one line at the bottom:
-    // the tools the site was made with (a plugin, a generator, a skill), then anything else (a font, a library)
-    const rest = credits.filter((c) => !marks.some((m) => m.credit === c && visibleRect(m.el)));
-    if (rest.length) {
-      const tools = rest.filter((c) => c.role === 'tool'), other = rest.filter((c) => c.role !== 'tool');
-      const also = h('div', { class: 'also', part: 'also' });
-      const list = (label, group) => { also.append(label); group.forEach((c, i) => { if (i) also.append(', '); also.append(words(c, '')); }); };
-      if (tools.length) list('Made with ', tools);
-      if (tools.length && other.length) also.append(' · ');
-      if (other.length) list(tools.length ? 'Also ' : 'Also: ', other);
-      layer.append(also);
+    buildList();
+  }
+
+  // ---------- the list ----------
+  // Every credit, in one place: the parts on this page (hover a name and only its parts stay lit; click it to go
+  // there), then the tools the site was made with, then anything else (a font, a library).
+  let focused = null;
+  function focusCredit(c) {
+    focused = c;
+    for (const m of marks) {
+      if (!m.credit) continue;
+      m.dim = !!c && m.credit !== c;
+      m.group.classList.toggle('dim', m.dim);
+      m.group.classList.toggle('show', (!!c && m.credit === c) || m === shownMark);
     }
+    if (listEl) for (const b of listEl.querySelectorAll('.item[data-id]')) b.classList.toggle('on', !!c && b.dataset.id === c.id);
+  }
+  let listEl = null;
+  function buildList() {
+    const placed = credits.filter((c) => marks.some((m) => m.credit === c && visibleRect(m.el)));
+    const rest = credits.filter((c) => !placed.includes(c));
+    const tools = rest.filter((c) => c.role === 'tool'), other = rest.filter((c) => c.role !== 'tool');
+    const row = (c, el) => { el.append(h('span', {}, c.name), c.author ? h('span', { class: 'by' }, 'by ' + c.author) : null); return el; };
+    const scroll = h('div', { class: 'scroll' });
+    if (placed.length) {
+      if (rest.length) scroll.append(h('div', { class: 'head' }, 'On this page'));
+      for (const c of placed) {
+        const b = row(c, h('button', { class: 'item', type: 'button', 'data-id': c.id }));
+        b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') focusCredit(c); });
+        b.addEventListener('focus', () => focusCredit(c));
+        b.addEventListener('click', () => {
+          focusCredit(c);
+          const m = marks.find((x) => x.credit === c);
+          if (m) m.el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+        });
+        scroll.append(b);
+      }
+    }
+    if (tools.length) { scroll.append(h('div', { class: 'head' }, 'Made with')); for (const c of tools) scroll.append(row(c, ext(c.url, 'item'))); }
+    if (other.length) { scroll.append(h('div', { class: 'head' }, 'Also')); for (const c of other) scroll.append(row(c, ext(c.url, 'item'))); }
+    const toggle = h('button', { class: 'toggle', type: 'button', 'aria-expanded': 'false' }, 'All credits', h('span', {}, String(credits.length)));
+    listEl = h('div', { class: 'list', part: 'list' }, toggle, h('div', { class: 'body' }, h('div', { inert: '' }, scroll)));
+    toggle.addEventListener('click', () => {
+      const open = !listEl.classList.contains('open');
+      listEl.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      listEl.querySelector('.body > div').inert = !open;
+      if (!open) focusCredit(null);
+    });
+    listEl.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') focusCredit(null); });
+    listEl.addEventListener('focusout', (e) => { if (!listEl.contains(e.relatedTarget)) focusCredit(null); });
+    layer.append(listEl);
   }
 
   const hit = (e) => marks.find((m) => m.credit && m.r && e.clientX >= m.r.left && e.clientX <= m.r.right && e.clientY >= m.r.top && e.clientY <= m.r.bottom);
@@ -607,8 +656,8 @@ a { color: inherit; text-decoration: none; }
     for (const m of marks) {
       const r = visibleRect(m.el);
       const on = r && r.bottom > 0 && r.right > 0 && r.top < vh && r.left < vw && (!m.credit || !covered(m.el, r, vw, vh));
-      m.r = on ? r : null;
-      m.shape.show(on);
+      m.r = on && !m.dim ? r : null;
+      m.shape.show(on && !m.dim);
       if (on) m.shape.update(r);
       if (!m.credit) continue;
       m.box.hidden = m.tag.hidden = !on;
@@ -705,6 +754,8 @@ a { color: inherit; text-decoration: none; }
     fade.classList.remove('on');
     layer.textContent = '';
     shownMark = null;
+    focused = null;
+    listEl = null;
     hideTimer = setTimeout(() => {
       cancelAnimationFrame(frame);
       fade.style.display = 'none';

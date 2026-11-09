@@ -35,6 +35,7 @@ test('the snippet from "Make your credits" works when pasted into a site', async
   await button.click();
   const lit = () => page.evaluate(() => [...document.querySelector('shoutout-layer').shadowRoot.querySelectorAll('.tag .title')].map((t) => t.textContent));
   await expect.poll(lit).toEqual(['Dollar Bill Texture Shader']);
-  const bar = await page.evaluate(() => document.querySelector('shoutout-layer').shadowRoot.querySelector('.also').textContent);
-  expect(bar).toContain('Made with Banknote Engraver');
+  const list = await page.evaluate(() => document.querySelector('shoutout-layer').shadowRoot.querySelector('.list').textContent);
+  expect(list).toContain('Made with');
+  expect(list).toContain('Banknote Engraver');
 });

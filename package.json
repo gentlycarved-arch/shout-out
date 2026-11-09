@@ -1,6 +1,6 @@
 {
   "name": "shoutout",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "description": "Shoutout designers & makers on your website: a Credits button that fades a site back to the parts made with other people's work.",
   "license": "MIT",

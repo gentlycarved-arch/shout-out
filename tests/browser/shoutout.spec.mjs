@@ -118,9 +118,33 @@ test('reduced motion: nothing replays', async ({ page, isMobile }) => {
   expect(await page.evaluate(() => window.counts.scriptedEnter)).toBe(0);
 });
 
-test('tools the site was made with, and credits with nothing to point at, are listed at the bottom', async ({ page, isMobile }) => {
-  await openCredits(page, isMobile);
-  const line = await layer(page, "return root.querySelector('.also')?.textContent || ''");
-  expect(line).toContain('Made with Banknote Engraver by No Maker');
-  expect(line).toContain('A typeface by Mo');
+test('the list: every credit in one place; hovering a name lights only its parts', async ({ page, isMobile }) => {
+  await openCredits(page, isMobile, '#seal');
+  const state = () => layer(page, `return {
+    open: root.querySelector('.list').classList.contains('open'),
+    heads: [...root.querySelectorAll('.list .head')].map((h) => h.textContent),
+    text: root.querySelector('.list').textContent,
+    lit: [...root.querySelectorAll('.mark')].filter((g) => !g.classList.contains('dim')).map((g) => g.querySelector('.title').textContent),
+    shown: [...root.querySelectorAll('.mark.show .title')].map((t) => t.textContent),
+  }`);
+  const toggle = page.locator('shoutout-layer .list .toggle');
+  await expect(toggle).toContainText('All credits');
+  if (isMobile) await toggle.tap(); else await toggle.click();
+  await expect.poll(async () => (await state()).open).toBe(true);
+  const s = await state();
+  expect(s.heads).toEqual(['On this page', 'Made with', 'Also']);
+  expect(s.text).toContain('Banknote Engraver');
+  expect(s.text).toContain('A typeface');
+
+  const seal = page.locator('shoutout-layer .list .item[data-id="svg-circle"]');
+  if (isMobile) await seal.tap(); else await seal.hover();
+  await expect.poll(async () => (await state()).lit).toEqual(['Seal']);
+  expect((await state()).shown).toEqual(['Seal']);
+  // the other parts are back under the fade: their holes are gone
+  await expect.poll(() => layer(page, "return [...root.querySelectorAll('.holes > *')].filter((n) => n.style.display !== 'none').length")).toBeLessThan(4);
+
+  if (!isMobile) {
+    await page.mouse.move(5, page.viewportSize().height - 5);
+    await expect.poll(async () => (await state()).lit.length).toBeGreaterThan(5);
+  }
 });
