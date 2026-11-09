@@ -92,10 +92,11 @@ a { color: inherit; text-decoration: none; }
 
 .fade { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 2147483000; opacity: 0; transition: opacity .4s ease; cursor: pointer; }
 .fade.on { opacity: 1; }
-.box { position: fixed; z-index: 2147483000; pointer-events: none; outline: none; border-radius: 2px; animation: glow .6s ease both;
-  box-shadow: 0 0 18px 2px color-mix(in srgb, var(--_accent) 45%, transparent), 0 0 48px 8px color-mix(in srgb, var(--_accent) 18%, transparent); }
+.box { position: fixed; z-index: 2147483000; pointer-events: none; outline: none; border-radius: 2px; }
 .box:focus-visible { outline: 1px solid var(--_accent); outline-offset: 3px; }
-@keyframes glow { from { box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent; } }
+.halo-color { flood-color: var(--_accent); flood-opacity: .8; }
+.halos { pointer-events: none; }
+.fade.on .halos { animation: in .8s ease .15s both; }
 /* the pop-over: dark glass with a small point toward its part, like a macOS menu */
 .tag {
   position: fixed; z-index: 2147483001; max-width: min(260px, calc(100vw - 16px));
@@ -125,7 +126,7 @@ a { color: inherit; text-decoration: none; }
 .also a:hover { text-decoration: underline; }
 @keyframes in { from { opacity: 0; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-@media (prefers-reduced-motion: reduce) { .fade, .tag .more { transition: none; } .box, .tag, .also { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .fade, .tag .more { transition: none; } .box, .tag, .also, .fade.on .halos { animation: none; } }
 `;
 
   const h = (tag, attrs = {}, ...kids) => {
@@ -157,7 +158,7 @@ a { color: inherit; text-decoration: none; }
 
   let credits = [];
   let active = false;
-  let layerShadow, fade, fadeFill, holes, layer, live;
+  let layerShadow, fade, fadeFill, holes, halos, defs, layer, live;
   let triggers = [];   // every element that turns Flowers on and off
   let keepLit = [];    // the button stays clear while the page fades
   let marks = [];      // { credit, el, box, tag, hole }
@@ -218,12 +219,23 @@ a { color: inherit; text-decoration: none; }
     fade = document.createElementNS(ns, 'svg');
     fade.setAttribute('class', 'fade');
     fade.setAttribute('aria-hidden', 'true');
-    fade.innerHTML = '<defs><mask id="flowers-holes" maskUnits="userSpaceOnUse"><rect x="0" y="0" width="100%" height="100%" fill="white"/><g class="holes"></g></mask></defs><rect class="fill" x="0" y="0" width="100%" height="100%" mask="url(#flowers-holes)"/>';
+    // the fade has a hole the exact shape of each credited part, and a soft glow drawn just outside that shape
+    fade.innerHTML = '<defs>'
+      + '<filter id="flowers-black" filterUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/></filter>'
+      + '<filter id="flowers-halo" filterUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">'
+      + '<feGaussianBlur in="SourceAlpha" stdDeviation="4" result="near"/><feGaussianBlur in="SourceAlpha" stdDeviation="14" result="far"/>'
+      + '<feMerge result="both"><feMergeNode in="far"/><feMergeNode in="near"/></feMerge>'
+      + '<feFlood class="halo-color" result="color"/><feComposite in="color" in2="both" operator="in" result="lit"/>'
+      + '<feComposite in="lit" in2="SourceAlpha" operator="out"/></filter>'
+      + '<mask id="flowers-holes" maskUnits="userSpaceOnUse"><rect x="0" y="0" width="100%" height="100%" fill="white"/><g class="holes" filter="url(#flowers-black)"></g></mask>'
+      + '</defs><rect class="fill" x="0" y="0" width="100%" height="100%" mask="url(#flowers-holes)"/><g class="halos" filter="url(#flowers-halo)"></g>';
     // hovering (or tapping) a credited part shows who made it; clicking anywhere else brings the page back
     fade.addEventListener('pointermove', (e) => { const m = hit(e); fade.style.cursor = m ? 'default' : 'pointer'; if (e.pointerType !== 'touch') hover(m); });
     fade.addEventListener('pointerleave', () => hover(null));
     fade.addEventListener('click', (e) => { const m = hit(e); if (m) hover(m, true); else close(); });
     holes = fade.querySelector('.holes');
+    halos = fade.querySelector('.halos');
+    defs = fade.querySelector('defs');
     fadeFill = fade.querySelector('.fill');
     fade.style.display = 'none';
     layer = h('div', {});
@@ -234,10 +246,120 @@ a { color: inherit; text-decoration: none; }
   }
 
   const ns = 'http://www.w3.org/2000/svg';
-  const newHole = () => { const r = document.createElementNS(ns, 'rect'); r.setAttribute('fill', 'black'); r.setAttribute('rx', '3'); holes.append(r); return r; };
+  // ---------- the shape of a part ----------
+  // An SVG drawing is copied with its own masks, clips and fills, so a round seal is round;
+  // a picture keeps its transparent edges; anything else is its box with its own rounded corners.
+  let imported = new Map(), uid = 0;
+  const URL_REF = /url\(\s*["']?#([^"')\s]+)["']?\s*\)/g;
+  function importRef(id) {
+    if (imported.has(id)) return imported.get(id);
+    const src = document.getElementById(id);
+    if (!src) return null;
+    const copy = src.cloneNode(true), fresh = 'flowers-d' + (++uid);
+    imported.set(id, fresh);
+    copy.id = fresh;
+    for (const n of [copy, ...copy.querySelectorAll('*')]) {
+      if (n !== copy && n.id) n.removeAttribute('id');
+      for (const a of [...n.attributes]) {
+        if (URL_REF.test(a.value)) n.setAttribute(a.name, a.value.replace(URL_REF, (_, ref) => { const r = importRef(ref); return r ? 'url(#' + r + ')' : 'none'; }));
+        URL_REF.lastIndex = 0;
+        if ((a.name === 'href' || a.name === 'xlink:href') && a.value.startsWith('#')) { const r = importRef(a.value.slice(1)); if (r) n.setAttribute(a.name, '#' + r); }
+      }
+    }
+    defs.append(copy);
+    return fresh;
+  }
+  const LOOK = ['fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray',
+    'opacity', 'display', 'visibility', 'mask', 'clip-path', 'filter', 'font-family', 'font-size', 'font-weight', 'letter-spacing', 'text-anchor', 'dominant-baseline'];
+  function copyLook(src, dst) {
+    const cs = getComputedStyle(src);
+    dst.removeAttribute('class');
+    dst.removeAttribute('style');
+    for (const p of LOOK) {
+      const v = cs.getPropertyValue(p);
+      if (v) dst.style.setProperty(p, v.replace(URL_REF, (_, ref) => { const r = importRef(ref); return r ? 'url(#' + r + ')' : 'none'; }));
+      URL_REF.lastIndex = 0;
+    }
+    for (const a of ['href', 'xlink:href']) {
+      const v = dst.getAttribute(a);
+      if (v && !v.startsWith('#')) dst.setAttribute(a, new URL(v, document.baseURI).href);
+    }
+  }
+  function svgShape(el) {
+    const copy = el.cloneNode(true);
+    copy.removeAttribute('transform');   // the element's own transform is part of getScreenCTM()
+    copy.removeAttribute('id');
+    const from = [el, ...el.querySelectorAll('*')], to = [copy, ...copy.querySelectorAll('*')];
+    from.forEach((n, i) => to[i] && copyLook(n, to[i]));
+    copy.style.removeProperty('opacity');   // the shape is the part, however faint it's drawn
+    return copy;
+  }
+  // a whole <svg>, copied as a nested <svg> placed over the original
+  function svgRoot(el) {
+    const copy = el.cloneNode(true);
+    const from = [el, ...el.querySelectorAll('*')], to = [copy, ...copy.querySelectorAll('*')];
+    from.forEach((n, i) => to[i] && copyLook(n, to[i]));
+    copy.style.removeProperty('opacity');
+    copy.setAttribute('overflow', 'visible');
+    return copy;
+  }
+  function picture(el) {
+    const n = document.createElementNS(ns, 'image');
+    n.setAttribute('href', el.currentSrc);
+    const fit = getComputedStyle(el).objectFit;
+    n.setAttribute('preserveAspectRatio', fit === 'cover' ? 'xMidYMid slice' : fit === 'contain' || fit === 'scale-down' ? 'xMidYMid meet' : 'none');
+    return n;
+  }
+  // a wrapper with nothing of its own to see (no fill, no border) is the shapes of the icons and pictures inside it
+  function bare(el) {
+    const cs = getComputedStyle(el);
+    return !(el instanceof SVGElement) && cs.backgroundImage === 'none' && /rgba\(.*,\s*0\)|transparent/.test(cs.backgroundColor)
+      && !parseFloat(cs.borderTopWidth) && !parseFloat(cs.borderBottomWidth) && cs.boxShadow === 'none';
+  }
+  function pieces(el) {
+    if (el instanceof SVGGraphicsElement && !(el instanceof SVGSVGElement) && el.ownerSVGElement) return [{ el, node: svgShape(el), kind: 'svg' }];
+    if (el instanceof SVGSVGElement) return [{ el, node: svgRoot(el), kind: 'frame' }];
+    if (el instanceof HTMLImageElement && el.currentSrc && !parseFloat(getComputedStyle(el).borderTopLeftRadius)) return [{ el, node: picture(el), kind: 'frame' }];
+    if (bare(el)) {
+      const inner = [...el.querySelectorAll('svg, img')].filter((n) => !n.parentElement.closest('svg') && visibleRect(n));
+      if (inner.length) return inner.flatMap(pieces);
+    }
+    const n = document.createElementNS(ns, 'rect');
+    n.setAttribute('fill', 'black');
+    return [{ el, node: n, kind: 'box' }];
+  }
+  function makeShape(el, glow) {
+    const parts = pieces(el);
+    for (const p of parts) {
+      p.nodes = [p.node];
+      holes.append(p.node);
+      if (glow) { const c = p.node.cloneNode(true); halos.append(c); p.nodes.push(c); }
+    }
+    return {
+      show(on) { for (const p of parts) for (const n of p.nodes) n.style.display = on ? '' : 'none'; },
+      update() {
+        for (const p of parts) {
+          if (p.kind === 'svg') {
+            const m = p.el.getScreenCTM();
+            if (m) for (const n of p.nodes) n.setAttribute('transform', `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`);
+            continue;
+          }
+          const g = p.el.getBoundingClientRect();
+          const rx = p.kind === 'box' ? Math.min(parseFloat(getComputedStyle(p.el).borderTopLeftRadius) || 0, g.width / 2, g.height / 2) : 0;
+          for (const n of p.nodes) {
+            n.setAttribute('x', g.left); n.setAttribute('y', g.top); n.setAttribute('width', g.width); n.setAttribute('height', g.height);
+            if (p.kind === 'box') n.setAttribute('rx', rx);
+          }
+        }
+      },
+    };
+  }
 
   function mark() {
     holes.textContent = '';
+    halos.textContent = '';
+    for (const d of defs.querySelectorAll('[id^="flowers-d"]')) d.remove();
+    imported = new Map();
     layer.textContent = '';
     marks = [];
     for (const credit of credits) {
@@ -253,12 +375,12 @@ a { color: inherit; text-decoration: none; }
         tag.addEventListener('pointerenter', () => hover(mark));
         tag.addEventListener('pointerleave', () => hover(null));
         layer.append(group);
-        const mark = { credit, el, box, tag, title, group, hole: newHole(), r: null };
+        const mark = { credit, el, box, tag, title, group, shape: makeShape(el, true), r: null };
         marks.push(mark);
       }
     }
     keepLit = keepLit.filter((el) => el.isConnected);
-    for (const el of keepLit.concat(triggers.filter((t) => t.getRootNode() === document))) marks.push({ credit: null, el, hole: newHole() });
+    for (const el of keepLit.concat(triggers.filter((t) => t.getRootNode() === document))) marks.push({ credit: null, el, shape: makeShape(el, false) });
 
     // credits with nothing to point at on this page (a font, a library) go in one line at the bottom
     const rest = credits.filter((c) => !marks.some((m) => m.credit === c && visibleRect(m.el)));
@@ -293,8 +415,8 @@ a { color: inherit; text-decoration: none; }
       const r = visibleRect(m.el);
       const on = r && r.bottom > 0 && r.right > 0 && r.top < vh && r.left < vw && (!m.credit || !covered(m.el, r, vw, vh));
       m.r = on ? r : null;
-      m.hole.setAttribute('width', on ? r.width : 0);
-      if (on) { m.hole.setAttribute('x', r.left); m.hole.setAttribute('y', r.top); m.hole.setAttribute('height', r.height); }
+      m.shape.show(on);
+      if (on) m.shape.update(r);
       if (!m.credit) continue;
       m.box.hidden = m.tag.hidden = !on;
       if (!on) continue;
@@ -384,6 +506,7 @@ a { color: inherit; text-decoration: none; }
       cancelAnimationFrame(frame);
       fade.style.display = 'none';
       holes.textContent = '';
+      halos.textContent = '';
       marks = [];
     }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 420);
     pressed(false);

@@ -77,7 +77,7 @@ Credits that make nothing you can point to (a library, a build tool, a font used
 
 **Recommended: at the bottom of the page.** By default `flowers.js` puts a small Credits button centred inside the site's `<footer>`, or at the very end of the page if there's no footer.
 
-Pressing it fades the page to dark, except for the parts made with credited tools. Those glow softly, each with a small dark-glass title just below it, pointing at it (the tool's `name`, linking to the original). Hovering one (tapping it on a phone, or tabbing to it) opens the title up to show "Flowers to" the maker's name and their short bio, if there is one. Credits with nothing to point at on the page (a font, a library) are listed in one line at the bottom. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
+Pressing it fades the page to dark, except for the parts made with credited tools. Those glow softly in their own shape (a round seal glows round, icons glow along their lines, a rounded card along its corners), each with a small dark-glass title just below it, pointing at it (the tool's `name`, linking to the original). Hovering one (tapping it on a phone, or tabbing to it) opens the title up to show "Flowers to" the maker's name and their short bio, if there is one. Credits with nothing to point at on the page (a font, a library) are listed in one line at the bottom. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
 
 The pop-up shows only `name`, `author`, `about` and `url`; `replay` drives the motion replay (or `authorUrl` when there's no `url`). The other fields are there for other tools and for anyone reading the file.
 
