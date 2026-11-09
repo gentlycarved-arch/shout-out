@@ -13,7 +13,7 @@
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
-  main { width: min(40rem, 100% - 32px); margin: 0 auto; padding: 72px 0 96px; }
+  main { width: min(35rem, 100% - 32px); margin: 0 auto; padding: 72px 0 96px; }
 
 
   .doves { display: block; width: 140px; height: 140px; margin: 0 auto 4px; }
@@ -23,7 +23,7 @@
   h1 .title { display: block; width: min(340px, 82%); height: auto; margin: 0 auto 6px; }
   .lede { color: var(--muted); text-align: center; margin: 12px 0 28px; }
   p { margin: 0 0 1.1em; text-wrap: pretty; }   /* left-aligned, with a natural right edge: easy to read */
-  h2 { font-size: 1em; font-weight: 400; margin: 56px 0 12px; }
+  h2 { font-size: 1em; font-weight: 400; margin: 64px 0 18px; }
   a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 
   pre { margin: 0 0 12px; padding: 12px 14px; background: var(--code); overflow-x: auto; font: 12.5px/1.5 ui-monospace, Menlo, monospace; }
@@ -41,11 +41,13 @@
   code { font: 12.5px/1.5 ui-monospace, Menlo, monospace; hyphens: none; -webkit-hyphens: none; }
   pre.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
   pre code { font: inherit; }
-  figure { margin: 0; }
-  video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; background: var(--code); border-radius: 14px; border: 1px solid var(--line); }
-  figcaption { color: var(--muted); font-size: 13px; margin-top: 10px; }
+  /* the example sits smaller, on a soft grey panel, with its caption centred underneath */
+  figure { margin: 8px 0 0; }
+  .stage { background: #f4f4f2; border-radius: 16px; padding: clamp(16px, 6%, 40px); }
+  video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; background: var(--code); border-radius: 8px; border: 1px solid var(--line); }
+  figcaption { color: var(--muted); font-size: 13px; line-height: 1.6; text-align: center; max-width: 26rem; margin: 18px auto 0; text-wrap: balance; }
 
-  footer { width: min(40rem, 100% - 32px); margin: 0 auto; padding: 0 0 48px; color: var(--muted); font-size: 13px; }
+  footer { width: min(35rem, 100% - 32px); margin: 0 auto; padding: 0 0 48px; color: var(--muted); font-size: 13px; }
   footer a { color: inherit; }
 
   /* "See who gave you a shoutout": the search opens right below, smoothly */
@@ -86,7 +88,7 @@
 
   <h2>Example</h2>
   <figure>
-    <video src="media/tts-shoutout-demo.mp4" poster="media/tts-shoutout-demo.jpg" autoplay muted loop playsinline width="1920" height="1200" aria-label="Pressing Shoutout on The Toronto Society website: the page fades to white, the engraved angel stays, and its pop-up shows the Dollar Bill Texture Shader by Praveen Kumar; the All shoutouts list at the top lights it up again"></video>
+    <div class="stage"><video src="media/tts-shoutout-demo.mp4" poster="media/tts-shoutout-demo.jpg" autoplay muted loop playsinline width="1920" height="1200" aria-label="Pressing Shoutout on The Toronto Society website: the page fades to white, the engraved angel stays, and its pop-up shows the Dollar Bill Texture Shader by Praveen Kumar; the All shoutouts list at the top lights it up again"></video></div>
     <figcaption>The Toronto Society: the engraved angel was made with <a href="https://www.figma.com/community/file/1686908159036705400/dollar-bill-texture-shader">Praveen Kumar’s Dollar Bill Texture Shader</a>. Shoutout isn’t live on The Toronto Society’s website yet; it was added there for this example. <a href="examples.html">See more examples</a>.</figcaption>
   </figure>
 
