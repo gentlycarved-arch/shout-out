@@ -1,8 +1,8 @@
-/*! Flowers 1.0.0 · give the makers their flowers: a button that fades a website back to the parts made with other people's tools · MIT */
+/*! Shoutout 2.0.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
 (() => {
   'use strict';
-  if (window.Flowers) return;
-  const VERSION = '1.0.0';
+  if (window.Shoutout) return;
+  const VERSION = '2.0.0';
 
   const script = document.currentScript;
   const opt = (name, fallback) => (script && script.getAttribute('data-' + name)) || fallback;
@@ -18,7 +18,7 @@
     const link = document.querySelector('link[rel~="credits"]');
     const url = new URL(src || (link && link.getAttribute('href')) || 'credits.json', document.baseURI).href;
     const res = await fetch(url, { cache: 'no-cache' });   // always check for the latest credits
-    if (!res.ok) throw new Error('Flowers: could not load ' + url + ' (' + res.status + ')');
+    if (!res.ok) throw new Error('Shoutout: could not load ' + url + ' (' + res.status + ')');
     return res.json();
   }
 
@@ -57,7 +57,7 @@
         if (el.getAttribute('data-credit').split(/\s+/).includes(credit.id)) found.add(el);
       });
       credit.selectors.forEach((s) => {
-        try { doc.querySelectorAll(s).forEach((el) => found.add(el)); } catch (e) { if (doc === document) console.warn('Flowers: bad selector', s); }
+        try { doc.querySelectorAll(s).forEach((el) => found.add(el)); } catch (e) { if (doc === document) console.warn('Shoutout: bad selector', s); }
       });
     }
     return [...found];
@@ -88,25 +88,25 @@
   }
 
   // ---------- styles ----------
-  // Sites set the --flowers-* properties anywhere (usually :root).
+  // Sites set the --shoutout-* properties anywhere (usually :root).
 
   const CSS = `
 :host { all: initial; }
 :host {
-  --_accent: var(--flowers-accent, #ffffff);
-  --_bg: var(--flowers-bg, #ffffff);
-  --_fg: var(--flowers-fg, #111111);
-  --_muted: var(--flowers-muted, #6b6b6b);
-  --_font: var(--flowers-font, "Helvetica Neue", Helvetica, Arial, sans-serif);
-  --_pop-bg: var(--flowers-popup-bg, #ffffff);
-  --_pop-fg: var(--flowers-popup-fg, #111111);
-  --_pop-muted: var(--flowers-popup-muted, #6b6b6b);
+  --_accent: var(--shoutout-accent, #ffffff);
+  --_bg: var(--shoutout-bg, #ffffff);
+  --_fg: var(--shoutout-fg, #111111);
+  --_muted: var(--shoutout-muted, #6b6b6b);
+  --_font: var(--shoutout-font, "Helvetica Neue", Helvetica, Arial, sans-serif);
+  --_pop-bg: var(--shoutout-popup-bg, #ffffff);
+  --_pop-fg: var(--shoutout-popup-fg, #111111);
+  --_pop-muted: var(--shoutout-popup-muted, #6b6b6b);
   --_ease: cubic-bezier(.2, .8, .2, 1);
-  --_r: var(--flowers-radius, 999px);
+  --_r: var(--shoutout-radius, 999px);
 }
 /* the button sits on the site, so it follows the site's light or dark; the pop-ups sit on the dark fade, so they stay white */
-@media (prefers-color-scheme: dark) { :host(:not([theme="light"])) .btn { --_bg: var(--flowers-bg, #1c1c1c); --_fg: var(--flowers-fg, #f2f2f2); } }
-:host([theme="dark"]) .btn { --_bg: var(--flowers-bg, #1c1c1c); --_fg: var(--flowers-fg, #f2f2f2); }
+@media (prefers-color-scheme: dark) { :host(:not([theme="light"])) .btn { --_bg: var(--shoutout-bg, #1c1c1c); --_fg: var(--shoutout-fg, #f2f2f2); } }
+:host([theme="dark"]) .btn { --_bg: var(--shoutout-bg, #1c1c1c); --_fg: var(--shoutout-fg, #f2f2f2); }
 * { box-sizing: border-box; }
 .root { font-family: var(--_font); font-size: 13px; line-height: 1.3; color: var(--_fg); -webkit-font-smoothing: antialiased; }
 a { color: inherit; text-decoration: none; }
@@ -172,7 +172,7 @@ a { color: inherit; text-decoration: none; }
     const host = document.createElement(name);
     const theme = opt('theme', 'auto');
     if (theme !== 'auto') host.setAttribute('theme', theme);
-    if (opt('accent')) host.style.setProperty('--flowers-accent', opt('accent'));
+    if (opt('accent')) host.style.setProperty('--shoutout-accent', opt('accent'));
     const shadow = host.attachShadow({ mode: 'open' });
     shadow.append(h('style', {}, CSS));
     return { host, shadow };
@@ -183,59 +183,76 @@ a { color: inherit; text-decoration: none; }
   let credits = [];
   let active = false;
   let layerShadow, fade, fadeFill, holes, halos, defs, layer, live;
-  let triggers = [];   // every element that turns Flowers on and off
+  let triggers = [];   // every element that turns Shoutout on and off
   let keepLit = [];    // the button stays clear while the page fades
   let marks = [];      // { credit, el, box, tag, hole }
   let frame = 0;
 
   // ---------- the button ----------
   // Recommended: at the bottom of the page (the default, inside the site's footer).
-  // An element marked data-flowers-button chooses the place: a <button> or <a> there becomes the button itself,
+  // An element marked data-shoutout-button chooses the place: a <button> or <a> there becomes the button itself,
   // anything else gets the Credits button inside it. data-position="bottom-right" etc. floats it in a corner.
 
   function makeButton() {
     return h('button', { class: 'btn', type: 'button', part: 'button', 'aria-pressed': 'false', onclick: toggle }, opt('label', 'Credits'));
   }
 
-  function placeButtons(rootEl) {
-    if (opt('button') === 'none') return;
-    const own = document.querySelectorAll('[data-flowers-button]');
+  // A site's own <button data-shoutout-button> is answered through one listener on the document, so it keeps working
+  // when an app draws its footer again. Shoutout' own buttons are put back if the page replaces the elements they sat in.
+  let layerHost = null, layerRoot = null, defaultHost = null, defaultButton = null;
+  const OWN = 'button, a, [role="button"]';
+  document.addEventListener('click', (e) => {
+    const t = e.target && e.target.closest && e.target.closest('[data-shoutout-button]');
+    if (t && t.matches(OWN)) { e.preventDefault(); toggle(); }
+  });
+  function syncButtons() {
+    if (opt('button') === 'none') { triggers = []; keepLit = []; return; }
+    const own = [...document.querySelectorAll('[data-shoutout-button]')];
+    const mine = own.filter((el) => el.matches(OWN));   // the site's own button or link
+    const made = [];                                      // Credits buttons Shoutout put inside the page
+    let floating = null;
+    for (const el of own) {
+      if (el.matches(OWN)) continue;
+      let host = [...el.children].find((c) => c.localName === 'shoutout-button');
+      if (!host) {
+        const sh = shadowHost('shoutout-button');
+        sh.shadow.append(h('div', { class: 'root' }, makeButton()));
+        el.append(sh.host);
+        host = sh.host;
+      }
+      made.push(host.shadowRoot.querySelector('button'));
+    }
     if (own.length) {
-      own.forEach((el) => {
-        if (el.matches('button, a, [role="button"]')) {
-          el.setAttribute('aria-pressed', 'false');
-          el.addEventListener('click', (e) => { e.preventDefault(); toggle(); });
-          triggers.push(el);
-        } else {
-          const { host, shadow } = shadowHost('flowers-button');
-          const b = makeButton();
-          shadow.append(h('div', { class: 'root' }, b));
-          el.append(host);
-          triggers.push(b);
-          keepLit.push(b);
+      if (defaultHost) defaultHost.remove();
+      if (defaultButton && defaultButton.parentNode === layerRoot) defaultButton.remove();
+    } else {
+      defaultButton ??= makeButton();
+      const corner = { 'bottom-right': 'br', 'bottom-left': 'bl', 'top-right': 'tr', 'top-left': 'tl' }[opt('position', 'bottom')];
+      if (corner) {
+        layerRoot.classList.add('float', 'pos-' + corner);
+        if (defaultButton.parentNode !== layerRoot) layerRoot.append(defaultButton);
+        floating = defaultButton;
+      } else {
+        if (!defaultHost) {
+          const sh = shadowHost('shoutout-button');
+          sh.shadow.append(h('div', { class: 'root inline' }, defaultButton));
+          defaultHost = sh.host;
         }
-      });
-      return;
+        const footers = [...document.querySelectorAll('footer')].filter((f) => !f.closest('article, aside, section, dialog'));
+        const where = footers[footers.length - 1] || document.body;
+        if (defaultHost.parentNode !== where || defaultHost !== where.lastElementChild && !where.contains(defaultHost)) where.append(defaultHost);
+        made.push(defaultButton);
+      }
     }
-    const b = makeButton();
-    triggers.push(b);
-    const corner = { 'bottom-right': 'br', 'bottom-left': 'bl', 'top-right': 'tr', 'top-left': 'tl' }[opt('position', 'bottom')];
-    if (corner) {
-      rootEl.classList.add('float', 'pos-' + corner);
-      rootEl.append(b);
-      return;
-    }
-    const { host, shadow } = shadowHost('flowers-button');
-    shadow.append(h('div', { class: 'root inline' }, b));
-    const footers = [...document.querySelectorAll('footer')].filter((f) => !f.closest('article, aside, section, dialog'));
-    (footers[footers.length - 1] || document.body).append(host);
-    keepLit.push(b);
+    triggers = mine.concat(made, floating ? [floating] : []);
+    keepLit = made;   // buttons inside the page stay clear of the fade; a floating one already sits above it
+    for (const t of triggers) t.setAttribute('aria-pressed', String(active));
   }
 
   // ---------- the layer ----------
 
   function build() {
-    const { host, shadow } = shadowHost('flowers-layer');
+    const { host, shadow } = shadowHost('shoutout-layer');
     layerShadow = shadow;
     const rootEl = h('div', { class: 'root' });
     live = h('div', { class: 'sr', 'aria-live': 'polite' });
@@ -245,14 +262,14 @@ a { color: inherit; text-decoration: none; }
     fade.setAttribute('aria-hidden', 'true');
     // the fade has a hole the exact shape of each credited part, and a soft glow drawn just outside that shape
     fade.innerHTML = '<defs>'
-      + '<filter id="flowers-black" filterUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/></filter>'
-      + '<filter id="flowers-halo" filterUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">'
+      + '<filter id="shoutout-black" filterUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/></filter>'
+      + '<filter id="shoutout-halo" filterUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">'
       + '<feGaussianBlur in="SourceAlpha" stdDeviation="4" result="near"/><feGaussianBlur in="SourceAlpha" stdDeviation="14" result="far"/>'
       + '<feMerge result="both"><feMergeNode in="far"/><feMergeNode in="near"/></feMerge>'
       + '<feFlood class="halo-color" result="color"/><feComposite in="color" in2="both" operator="in" result="lit"/>'
       + '<feComposite in="lit" in2="SourceAlpha" operator="out"/></filter>'
-      + '<mask id="flowers-holes" maskUnits="userSpaceOnUse"><rect x="0" y="0" width="100%" height="100%" fill="white"/><g class="holes" filter="url(#flowers-black)"></g></mask>'
-      + '</defs><rect class="fill" x="0" y="0" width="100%" height="100%" mask="url(#flowers-holes)"/><g class="halos" filter="url(#flowers-halo)"></g>';
+      + '<mask id="shoutout-holes" maskUnits="userSpaceOnUse"><rect x="0" y="0" width="100%" height="100%" fill="white"/><g class="holes" filter="url(#shoutout-black)"></g></mask>'
+      + '</defs><rect class="fill" x="0" y="0" width="100%" height="100%" mask="url(#shoutout-holes)"/><g class="halos" filter="url(#shoutout-halo)"></g>';
     // hovering (or tapping) a credited part shows who made it; clicking anywhere else brings the page back
     fade.addEventListener('pointermove', (e) => { const m = hit(e); fade.style.cursor = m ? 'default' : 'pointer'; if (e.pointerType !== 'touch') hover(m); });
     fade.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') hover(null); });   // a lifted finger "leaves" too
@@ -275,9 +292,10 @@ a { color: inherit; text-decoration: none; }
     fade.style.display = 'none';
     layer = h('div', {});
     rootEl.append(fade, layer, live);
-    placeButtons(rootEl);
+    layerHost = host; layerRoot = rootEl;
     shadow.append(rootEl);
     document.body.append(host);
+    syncButtons();
   }
 
   const ns = 'http://www.w3.org/2000/svg';
@@ -293,7 +311,7 @@ a { color: inherit; text-decoration: none; }
     if (imported.has(key)) return imported.get(key);
     const src = doc.getElementById(id);
     if (!src) return null;
-    const copy = src.cloneNode(true), fresh = 'flowers-d' + (++uid);
+    const copy = src.cloneNode(true), fresh = 'shoutout-d' + (++uid);
     imported.set(key, fresh);
     copy.id = fresh;
     for (const n of [copy, ...copy.querySelectorAll('*')]) {
@@ -496,13 +514,13 @@ a { color: inherit; text-decoration: none; }
   }
 
   // ---------- areas drawn by code ----------
-  // A part with no element of its own (an object in a WebGL or 3D scene, a region of a canvas) is given to Flowers as
-  // a function that returns where it is on screen: Flowers.area('chair', () => ({ x, y, width, height, radius })).
+  // A part with no element of its own (an object in a WebGL or 3D scene, a region of a canvas) is given to Shoutout as
+  // a function that returns where it is on screen: Shoutout.area('chair', () => ({ x, y, width, height, radius })).
   const areas = new Map();   // credit id -> [where()]
   let proxies = [];
   function proxyFor(where) {
     const el = document.createElement('div');
-    el.setAttribute('data-flowers-area', '');
+    el.setAttribute('data-shoutout-area', '');
     el.setAttribute('aria-hidden', 'true');
     Object.assign(el.style, { position: 'fixed', pointerEvents: 'none', margin: '0', padding: '0', border: '0', background: 'none', zIndex: '-1' });
     el.where = where;
@@ -526,7 +544,7 @@ a { color: inherit; text-decoration: none; }
     dropProxies();
     holes.textContent = '';
     halos.textContent = '';
-    for (const d of defs.querySelectorAll('[id^="flowers-d"]')) d.remove();
+    for (const d of defs.querySelectorAll('[id^="shoutout-d"]')) d.remove();
     imported = new Map();
     layer.textContent = '';
     marks = [];
@@ -575,9 +593,9 @@ a { color: inherit; text-decoration: none; }
 
   // something on top (a pop-up, a menu) hides the part, so it isn't lit through it
   function covered(el, r, vw, vh) {
-    if (el.ownerDocument !== document || el.hasAttribute('data-flowers-area')) return false;
+    if (el.ownerDocument !== document || el.hasAttribute('data-shoutout-area')) return false;
     const x = Math.min(Math.max(r.left + r.width / 2, 1), vw - 1), y = Math.min(Math.max(r.top + r.height / 2, 1), vh - 1);
-    const hit = document.elementsFromPoint(x, y).find((e) => e.localName !== 'flowers-layer');
+    const hit = document.elementsFromPoint(x, y).find((e) => e.localName !== 'shoutout-layer');
     if (!hit || hit === el || el.contains(hit) || hit.contains(el)) return false;
     const svg = el.ownerSVGElement;
     return !(svg && svg.contains(hit));
@@ -622,16 +640,16 @@ a { color: inherit; text-decoration: none; }
 
   // ---------- replaying a credited motion ----------
   // While Credits is on, a credited motion plays by itself, slowly, on a loop:
-  //   "hover"         sets data-flowers-hover on the part; the site's CSS matches it next to :hover. Nothing else happens,
+  //   "hover"         sets data-shoutout-hover on the part; the site's CSS matches it next to :hover. Nothing else happens,
   //                   so no menu opens, no video starts and no analytics fire.
   //   "hover-events"  also sends the mouse events a script listens for. Only for effects driven by a script, and only
-  //                   when those events do nothing but the effect. Flowers.replaying is true while they're sent.
+  //                   when those events do nothing but the effect. Shoutout.replaying is true while they're sent.
   //   "animation"     restarts the part's own CSS or Web animations.
   const replays = new Map();   // element -> { timer, on }
   const HOLD = 1600, REST = 1800;
   let replaying = false;
   function pulse(el, kind, on) {
-    if (kind === 'hover' || kind === 'hover-events') el.toggleAttribute('data-flowers-hover', on);
+    if (kind === 'hover' || kind === 'hover-events') el.toggleAttribute('data-shoutout-hover', on);
     if (kind === 'hover-events') {
       const win = el.ownerDocument.defaultView, r = el.getBoundingClientRect(), at = { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
       replaying = true;
@@ -666,8 +684,8 @@ a { color: inherit; text-decoration: none; }
     if (active || !layerShadow) return;
     active = true;
     clearTimeout(hideTimer);
-    fadeFill.style.fill = 'var(--flowers-fade-color, #0a0a0a)';
-    fadeFill.style.fillOpacity = 'var(--flowers-fade, 0.82)';
+    fadeFill.style.fill = 'var(--shoutout-fade-color, #0a0a0a)';
+    fadeFill.style.fillOpacity = 'var(--shoutout-fade, 0.82)';
     mark();
     place();
     fade.style.display = '';
@@ -676,8 +694,8 @@ a { color: inherit; text-decoration: none; }
     loop();
     startReplays();
     const shown = credits.filter((c) => marks.some((m) => m.credit === c && visibleRect(m.el))).length;
-    live.textContent = 'Flowers on. ' + shown + ' of ' + credits.length + ' shown on this page. Press Escape to close.';
-    document.dispatchEvent(new CustomEvent('flowers:toggle', { detail: { open: true } }));
+    live.textContent = 'Shoutout on. ' + shown + ' of ' + credits.length + ' shown on this page. Press Escape to close.';
+    document.dispatchEvent(new CustomEvent('shoutout:toggle', { detail: { open: true } }));
   }
 
   function close() {
@@ -696,8 +714,8 @@ a { color: inherit; text-decoration: none; }
       dropProxies();
     }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 420);
     pressed(false);
-    live.textContent = 'Flowers off.';
-    document.dispatchEvent(new CustomEvent('flowers:toggle', { detail: { open: false } }));
+    live.textContent = 'Shoutout off.';
+    document.dispatchEvent(new CustomEvent('shoutout:toggle', { detail: { open: false } }));
   }
 
   function toggle() { active ? close() : open(); }
@@ -707,12 +725,12 @@ a { color: inherit; text-decoration: none; }
   // after the page changes (a new route, parts added or removed), open Credits again over the new parts
   function refresh() { if (active) { stopReplays(); mark(); place(); startReplays(); } }
 
-  window.Flowers = {
+  window.Shoutout = {
     version: VERSION,
     open, close, toggle, refresh,
     // a part drawn by code: where() returns { x, y, width, height, radius } on screen (or an element), or null when hidden
     area(id, where) {
-      if (typeof where !== 'function') throw new TypeError('Flowers.area(id, where): where must be a function');
+      if (typeof where !== 'function') throw new TypeError('Shoutout.area(id, where): where must be a function');
       areas.set(String(id), (areas.get(String(id)) || []).concat(where));
       refresh();
       return () => { areas.set(String(id), (areas.get(String(id)) || []).filter((f) => f !== where)); refresh(); };
@@ -722,12 +740,55 @@ a { color: inherit; text-decoration: none; }
     get replaying() { return replaying; },
   };
 
+  // ---------- when the page changes without reloading ----------
+  // Next.js, Astro, Turbo, Framer and other apps change pages in place, and some replace <body> outright.
+  // Shoutout puts itself back, keeps its buttons, re-reads credits written in the page, and, while Credits
+  // is on, lights up the parts of the new page.
+  let healTimer = 0, inlineText = null;
+  const ours = (n) => n.nodeType === 1 && (n.localName === 'shoutout-layer' || n.localName === 'shoutout-button' || n.hasAttribute('data-shoutout-area'));
+  function heal() {
+    clearTimeout(healTimer);
+    healTimer = 0;
+    if (!layerHost) return;
+    if (!layerHost.isConnected) document.body.append(layerHost);
+    const inline = !opt('src') && document.querySelector('script[type="application/credits+json"]');
+    if (inline && inline.textContent !== inlineText) {
+      inlineText = inline.textContent;
+      try { credits = normalize(JSON.parse(inlineText)); } catch (e) { console.warn('Shoutout: the credits in the page are not valid JSON'); }
+    }
+    syncButtons();
+    if (active) {
+      const now = credits.flatMap((c) => targetsOf(c));
+      const had = marks.filter((m) => m.credit && !m.el.hasAttribute('data-shoutout-area')).map((m) => m.el);
+      if (now.length !== had.length || now.some((el, i) => el !== had[i])) refresh();
+    }
+  }
+  const soon = () => { if (!healTimer) healTimer = setTimeout(heal, 120); };
+  function watch() {
+    new MutationObserver((records) => {
+      for (const r of records) {
+        if (r.target.nodeType === 1 && (ours(r.target) || r.target.closest('shoutout-layer, shoutout-button, [data-shoutout-area]'))) continue;
+        if ([...r.addedNodes, ...r.removedNodes].every(ours)) continue;
+        return soon();
+      }
+    }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+    for (const type of ['popstate', 'pageshow']) addEventListener(type, soon);
+    for (const type of ['astro:after-swap', 'astro:page-load', 'turbo:load', 'turbo:render', 'swup:page:view']) document.addEventListener(type, soon);
+    for (const name of ['pushState', 'replaceState']) {
+      const original = history[name];
+      history[name] = function (...args) { const out = original.apply(this, args); soon(); return out; };
+    }
+  }
+
   async function start() {
     try { credits = normalize(await load()); } catch (err) { console.warn(err.message || err); return; }
     if (!credits.length) return;
+    const inline = !opt('src') && document.querySelector('script[type="application/credits+json"]');
+    if (inline) inlineText = inline.textContent;
     build();
-    document.dispatchEvent(new CustomEvent('flowers:ready', { detail: { version: VERSION, credits: credits.length } }));
-    if (location.hash === '#flowers') open();
+    watch();
+    document.dispatchEvent(new CustomEvent('shoutout:ready', { detail: { version: VERSION, credits: credits.length } }));
+    if (location.hash === '#shoutout') open();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);

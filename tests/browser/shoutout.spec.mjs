@@ -3,39 +3,39 @@ import { readFileSync } from 'node:fs';
 
 const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url)));
 
-// everything Flowers draws lives in an open shadow root
+// everything Shoutout draws lives in an open shadow root
 const layer = (page, fn, arg) => page.evaluate(([src, a]) => {
-  const root = document.querySelector('flowers-layer').shadowRoot;
+  const root = document.querySelector('shoutout-layer').shadowRoot;
   return new Function('root', 'a', src)(root, a);
 }, [fn, arg]);
 
 // press Credits (it sits in the footer, so a phone scrolls down to it), then bring the part to look at back into view
 async function openCredits(page, isMobile, look = 'main') {
-  const button = page.locator('flowers-button').locator('button');
+  const button = page.locator('shoutout-button').locator('button');
   if (isMobile) await button.tap(); else await button.click();
-  await expect.poll(() => page.evaluate(() => window.Flowers.isOpen)).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.Shoutout.isOpen)).toBe(true);
   await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: 'start' }), look);
   await page.waitForTimeout(700);   // the fade, and a first canvas read
 }
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/tests/fixtures/', { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.Flowers && document.querySelector('flowers-layer'), null, { polling: 100 });
+  await page.waitForFunction(() => window.Shoutout && document.querySelector('shoutout-layer'), null, { polling: 100 });
 });
 
 test('loads, with its version', async ({ page }) => {
-  expect(await page.evaluate(() => window.Flowers.version)).toBe(pkg.version);
-  expect(await page.evaluate(() => window.Flowers.credits.length)).toBe(14);
+  expect(await page.evaluate(() => window.Shoutout.version)).toBe(pkg.version);
+  expect(await page.evaluate(() => window.Shoutout.credits.length)).toBe(14);
 });
 
 test('the Credits button sits in the footer and turns the fade on and off', async ({ page, isMobile }) => {
-  const button = page.locator('footer flowers-button').locator('button');
+  const button = page.locator('footer shoutout-button').locator('button');
   await expect(button).toHaveText('Credits');
   await openCredits(page, isMobile);
   await expect(button).toHaveAttribute('aria-pressed', 'true');
   expect(await layer(page, "return root.querySelector('.fade').classList.contains('on')")).toBe(true);
   await page.keyboard.press('Escape');
-  await expect.poll(() => page.evaluate(() => window.Flowers.isOpen)).toBe(false);
+  await expect.poll(() => page.evaluate(() => window.Shoutout.isOpen)).toBe(false);
   await expect(button).toHaveAttribute('aria-pressed', 'false');
 });
 
@@ -66,7 +66,7 @@ test('a part inside an iframe lines up with the frame', async ({ page, isMobile 
   expect(box.some((r) => Math.abs(r.x - (frame.x + 30)) < 2 && Math.abs(r.w - 80) < 2)).toBe(true);
 });
 
-test('a part drawn by code (Flowers.area) is lit where its function says', async ({ page, isMobile }) => {
+test('a part drawn by code (Shoutout.area) is lit where its function says', async ({ page, isMobile }) => {
   await openCredits(page, isMobile, '#stage');
   const stage = await page.locator('#stage').boundingBox();
   const rects = await layer(page, "return [...root.querySelectorAll('.holes > rect')].map((n) => ({ x: +n.getAttribute('x'), y: +n.getAttribute('y'), w: +n.getAttribute('width'), h: +n.getAttribute('height'), rx: +n.getAttribute('rx') }))");
@@ -94,27 +94,27 @@ test('clicking the faded page brings it back', async ({ page, isMobile }) => {
   await openCredits(page, isMobile);
   const vw = page.viewportSize().width;
   if (isMobile) await page.touchscreen.tap(vw - 6, 6); else await page.mouse.click(vw - 6, 6);
-  await expect.poll(() => page.evaluate(() => window.Flowers.isOpen)).toBe(false);
+  await expect.poll(() => page.evaluate(() => window.Shoutout.isOpen)).toBe(false);
 });
 
 test('motions replay: hover by CSS only, scripted hovers by events, animations restart', async ({ page, isMobile }) => {
   await openCredits(page, isMobile);
-  await page.waitForFunction(() => document.querySelector('.lift').hasAttribute('data-flowers-hover'), null, { timeout: 5000 });
+  await page.waitForFunction(() => document.querySelector('.lift').hasAttribute('data-shoutout-hover'), null, { timeout: 5000 });
   await page.waitForFunction(() => window.counts.scriptedEnter > 0, null, { timeout: 5000 });
   // "hover" never sends mouse events, so nothing else on the site reacts
   expect(await page.evaluate(() => window.counts.liftEnter)).toBe(0);
   await page.keyboard.press('Escape').catch(() => {});
-  await page.evaluate(() => window.Flowers.close());
-  expect(await page.evaluate(() => document.querySelector('.lift').hasAttribute('data-flowers-hover'))).toBe(false);
+  await page.evaluate(() => window.Shoutout.close());
+  expect(await page.evaluate(() => document.querySelector('.lift').hasAttribute('data-shoutout-hover'))).toBe(false);
 });
 
 test('reduced motion: nothing replays', async ({ page, isMobile }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
-  await page.waitForFunction(() => window.Flowers && document.querySelector('flowers-layer'), null, { polling: 100 });
+  await page.waitForFunction(() => window.Shoutout && document.querySelector('shoutout-layer'), null, { polling: 100 });
   await openCredits(page, isMobile);
   await page.waitForTimeout(2600);
-  expect(await page.evaluate(() => document.querySelector('.lift').hasAttribute('data-flowers-hover'))).toBe(false);
+  expect(await page.evaluate(() => document.querySelector('.lift').hasAttribute('data-shoutout-hover'))).toBe(false);
   expect(await page.evaluate(() => window.counts.scriptedEnter)).toBe(0);
 });
 

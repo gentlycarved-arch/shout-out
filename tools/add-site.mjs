@@ -39,7 +39,7 @@ try {
   if (!n) throw new Error('its credits list is empty');
 } catch (e) {
   out('added', 'no'); out('done', 'no'); out('site', site);
-  out('message', `I couldn't read credits from ${site} (${e.message}). Flowers looks for a <link rel="credits">, inline credits, or /credits.json. Once it's live, edit this issue and it'll be checked again.`);
+  out('message', `I couldn't read credits from ${site} (${e.message}). Shoutout looks for a <link rel="credits">, inline credits, or /credits.json. Once it's live, edit this issue and it'll be checked again.`);
   process.exit(0);
 }
 

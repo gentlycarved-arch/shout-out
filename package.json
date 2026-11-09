@@ -1,15 +1,17 @@
 {
-  "name": "flowers",
-  "version": "1.0.0",
+  "name": "shoutout",
+  "version": "2.0.0",
   "private": true,
-  "description": "Give the makers their flowers: a Credits button that fades a website back to the parts made with other people's tools.",
+  "description": "Shoutout designers & makers on your website: a Credits button that fades a site back to the parts made with other people's work.",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "serve": "node tools/serve.mjs",
     "test": "node --test tests/unit/*.test.mjs && playwright test",
     "test:unit": "node --test tests/unit/*.test.mjs",
-    "test:browsers": "playwright test"
+    "test:browsers": "playwright test",
+    "test:apps": "node tools/test-apps.mjs",
+    "build:skill": "node tools/build-skill.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.65.0"

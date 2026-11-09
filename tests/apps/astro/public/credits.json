@@ -1,0 +1,3 @@
+{ "credit": "1.0", "site": "Test app", "credits": [
+  { "id": "hero", "name": "Hero shader", "author": "Ann Maker", "url": "https://example.com/hero" },
+  { "id": "card", "name": "Card kit", "author": "Bo Maker", "url": "https://example.com/card" } ] }

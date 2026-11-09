@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Make your credits</title>
+<meta name="description" content="Shoutout without code: fill in who made what, then paste one snippet into Framer, Webflow, Squarespace, Wix or any site builder.">
+<link rel="preload" href="fonts/HedvigLettersSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Hedvig Letters Sans, by Kanon Foundry; SIL Open Font License (fonts/OFL.txt) */
+  @font-face { font-family: "Hedvig Letters Sans"; src: url("fonts/HedvigLettersSans-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+  :root { --font: "Hedvig Letters Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; --bg: #ffffff; --fg: #333333; --muted: #8a8a8a; --line: #ececec; --code: #f6f6f6; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
+  main { width: min(30rem, 100% - 32px); margin: 0 auto; padding: 72px 0 96px; }
+  h1 { font-size: 1.25em; font-weight: 400; line-height: 1.3; margin: 0; }
+  .lede { color: var(--muted); margin: 2px 0 28px; }
+  h2 { font-size: 1em; font-weight: 400; margin: 56px 0 12px; }
+  p { margin: 0 0 1.1em; }
+  a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .muted { color: var(--muted); font-size: 14px; }
+
+  /* one credit: plain fields with a hairline underneath, like the search */
+  fieldset { border: 0; margin: 0 0 40px; padding: 0; }
+  legend { padding: 0; margin: 0 0 4px; color: var(--muted); font-size: 14px; }
+  label { display: block; margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+  input, select, textarea { display: block; width: 100%; font: inherit; font-size: 16px; color: var(--fg); background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 6px 0; outline: none; -webkit-appearance: none; appearance: none; }
+  textarea { resize: vertical; min-height: 2.4em; }
+  input:focus-visible, select:focus-visible, textarea:focus-visible { border-bottom-color: var(--fg); }
+  ::placeholder { color: var(--muted); opacity: 1; }
+  select { background: none; cursor: pointer; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+  @media (max-width: 480px) { .row { grid-template-columns: 1fr; } }
+  .plain { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .plain:focus-visible { outline: 1px solid var(--fg); outline-offset: 3px; }
+  .remove { color: var(--muted); font-size: 14px; margin-top: 12px; }
+  .actions { display: flex; gap: 20px; flex-wrap: wrap; }
+
+  pre { margin: 0 0 12px; padding: 12px 14px; background: var(--code); overflow-x: auto; font: 13px/1.5 ui-monospace, Menlo, monospace; white-space: pre; max-height: 22em; }
+  ol { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+  ol li { counter-increment: step; display: grid; grid-template-columns: 1.6em 1fr; margin: 0 0 12px; }
+  ol li::before { content: counter(step) "."; color: var(--muted); }
+  dl { margin: 0; }
+  dt { margin: 14px 0 0; }
+  dd { margin: 0; color: var(--muted); font-size: 15px; }
+  [hidden] { display: none !important; }
+  footer { width: min(30rem, 100% - 32px); margin: 0 auto; padding: 0 0 48px; color: var(--muted); font-size: 14px; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Make your credits</h1>
+  <p class="lede">Shoutout without code, for Framer, Webflow, Squarespace, Wix and other site builders.</p>
+
+  <p>Fill in who made what. You’ll get one snippet to paste into your site, and a Credits button appears in your footer.</p>
+
+  <form id="form" novalidate>
+    <div id="credits"></div>
+    <div class="actions"><button class="plain" type="button" id="add">Add another</button></div>
+  </form>
+
+  <h2>Your snippet</h2>
+  <p>Paste it where your site builder lets you add code to every page, at the end of the body:</p>
+  <pre id="snippet" aria-live="polite"></pre>
+  <div class="actions">
+    <button class="plain" type="button" id="copy">Copy</button>
+    <button class="plain" type="button" id="download">Download credits.json instead</button>
+  </div>
+  <p class="muted" id="copied" aria-live="polite"></p>
+
+  <h2>Where to paste it</h2>
+  <dl>
+    <dt>Framer</dt><dd>Site Settings, General, Custom Code: End of &lt;body&gt; tag.</dd>
+    <dt>Webflow</dt><dd>Site settings, Custom code: Footer code. To light up a part exactly, select it, then Element settings, Custom attributes: name <code>data-credit</code>, value the credit’s id shown above its fields.</dd>
+    <dt>Squarespace</dt><dd>Settings, Advanced, Code Injection: Footer. Custom code needs a paid plan.</dd>
+    <dt>Wix</dt><dd>Settings, Custom Code: add it to all pages, in the Body, end. Custom code needs a paid plan.</dd>
+    <dt>Anything else</dt><dd>Wherever it lets you add HTML to every page. If it can host files, you can upload <code>credits.json</code> and use the shorter version you get with “Download credits.json instead”.</dd>
+  </dl>
+
+  <h2>Pointing at the right part</h2>
+  <p>Site builders don’t let you name things the way code does, so tell Shoutout how to find the part: a picture by a word in its file name or its alt text, or anything by its class or id (your builder shows these in its settings or in the browser’s “Inspect”). Leave it on “Nothing on the page” for a tool you made the site with, or a font used everywhere: it’s listed at the bottom instead.</p>
+</main>
+<footer><a href="./">Shoutout</a></footer>
+
+<template id="credit">
+  <fieldset>
+    <legend></legend>
+    <div class="row">
+      <label>What it is called<input name="name" placeholder="Dollar Bill Texture Shader" required></label>
+      <label>Link to it<input name="url" type="url" placeholder="https://…"></label>
+    </div>
+    <div class="row">
+      <label>Who made it<input name="author" placeholder="Praveen Kumar"></label>
+      <label>Their profile<input name="authorUrl" type="url" placeholder="https://…"></label>
+    </div>
+    <label>A line about them, in their own words <span class="muted">(their bio, optional)</span><textarea name="about" rows="1" maxlength="200"></textarea></label>
+    <label>How you used it <span class="muted">(optional)</span><input name="note" placeholder="Engraves the angel on the home page"></label>
+    <div class="row">
+      <label>It is
+        <select name="role"><option value="part">part of the site</option><option value="tool">a tool I made the site with</option></select>
+      </label>
+      <label>Where it is on the page
+        <select name="where">
+          <option value="none">Nothing on the page</option>
+          <option value="file">A picture whose file name has…</option>
+          <option value="alt">A picture whose alt text has…</option>
+          <option value="class">Things with the class…</option>
+          <option value="id">The thing with the id…</option>
+          <option value="css">A CSS selector…</option>
+        </select>
+      </label>
+    </div>
+    <label class="what" hidden><span></span><input name="what"></label>
+    <button class="plain remove" type="button">Remove</button>
+  </fieldset>
+</template>
+
+<script>
+  const CDN = 'https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@2/shoutout.js';
+  const $ = (id) => document.getElementById(id);
+  const list = $('credits'), tpl = $('credit');
+  const HINT = { file: 'Word in the file name, e.g. angel', alt: 'Word in the alt text, e.g. angel', class: 'Class name, e.g. hero-image', id: 'Id, e.g. hero', css: 'CSS selector, e.g. .hero img' };
+  const slug = (s, i) => (s || 'credit-' + (i + 1)).toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_]+/g, '-').replace(/-+/g, '-').slice(0, 40) || 'credit-' + (i + 1);
+  const quote = (s) => s.replace(/["\\]/g, '\\$&');
+  const isUrl = (u) => /^https?:\/\/\S+$/i.test(u);
+
+  function selector(where, what) {
+    what = what.trim();
+    if (!what || where === 'none') return null;
+    if (where === 'file') return `img[src*="${quote(what)}"], img[srcset*="${quote(what)}"]`;
+    if (where === 'alt') return `img[alt*="${quote(what)}" i]`;
+    if (where === 'class') return '.' + CSS.escape(what.replace(/^\./, ''));
+    if (where === 'id') return '#' + CSS.escape(what.replace(/^#/, ''));
+    return what;
+  }
+
+  function read() {
+    const used = new Set();
+    return [...list.children].map((fs, i) => {
+      const f = (n) => fs.querySelector(`[name="${n}"]`).value.trim();
+      let id = slug(f('name'), i), k = 2;
+      while (used.has(id)) id = slug(f('name'), i) + '-' + k++;
+      used.add(id);
+      fs.querySelector('legend').textContent = (f('name') || 'Credit ' + (i + 1)) + ' · id: ' + id;
+      const c = { id, name: f('name') || 'Untitled' };
+      if (f('author')) c.author = f('author');
+      if (isUrl(f('authorUrl'))) c.authorUrl = f('authorUrl');
+      if (f('about')) c.about = f('about');
+      if (isUrl(f('url'))) c.url = f('url');
+      if (f('role') === 'tool') c.role = 'tool';
+      if (f('note')) c.note = f('note');
+      const sel = selector(f('where'), f('what'));
+      if (sel) c.selectors = [sel];
+      return c;
+    });
+  }
+
+  const json = () => JSON.stringify({ credit: '1.0', credits: read() }, null, 2);
+  function render() {
+    const body = json().replace(/<\//g, '<\\/');
+    $('snippet').textContent = `<script type="application/credits+json">\n${body}\n<\/script>\n<script src="${CDN}" defer><\/script>`;
+  }
+
+  function add(values = {}) {
+    const fs = tpl.content.firstElementChild.cloneNode(true);
+    for (const [k, v] of Object.entries(values)) fs.querySelector(`[name="${k}"]`).value = v;
+    const where = fs.querySelector('[name="where"]'), what = fs.querySelector('.what');
+    const sync = () => { what.hidden = where.value === 'none'; what.querySelector('span').textContent = HINT[where.value] || ''; };
+    where.addEventListener('change', sync); sync();
+    fs.querySelector('.remove').addEventListener('click', () => { fs.remove(); if (!list.children.length) add(); render(); });
+    list.append(fs);
+    render();
+    return fs;
+  }
+
+  $('form').addEventListener('input', render);
+  $('form').addEventListener('change', render);
+  $('add').addEventListener('click', () => add().querySelector('input').focus());
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('snippet').textContent); $('copied').textContent = 'Copied.'; }
+    catch { getSelection().selectAllChildren($('snippet')); $('copied').textContent = 'Selected: press Cmd+C or Ctrl+C to copy.'; }
+  });
+  $('download').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([json() + '\n'], { type: 'application/json' }));
+    a.download = 'credits.json';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    $('copied').textContent = 'Upload credits.json to your site, then paste this instead: <link rel="credits" href="/credits.json"> in the head, and the <script src> line at the end of the body.';
+  });
+  add();
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flowers test page</title>
+<title>Shoutout test page</title>
 <style>
   body { margin: 0; font: 14px/1.4 sans-serif; background: #fafafa; }
   main { display: grid; grid-template-columns: repeat(auto-fill, 150px); gap: 40px 24px; padding: 24px; }
@@ -12,14 +12,14 @@
   #clip { background: #393; clip-path: circle(50% at 50% 50%); }
   #bg { background: url(dot.svg) center / contain no-repeat; }
   .lift { transition: transform .3s; }
-  .lift:hover, .lift[data-flowers-hover] { transform: translateY(-4px); }
+  .lift:hover, .lift[data-shoutout-hover] { transform: translateY(-4px); }
   @keyframes spin { to { transform: rotate(360deg); } }
   #spin { animation: spin 3s linear infinite; background: #c93; }
   iframe { border: 0; }
   footer { padding: 16px; }
 </style>
 <script type="application/credits+json">
-{ "credit": "1.0", "site": "Flowers tests", "credits": [
+{ "credit": "1.0", "site": "Shoutout tests", "credits": [
   { "id": "svg-circle", "name": "Seal", "author": "Ann Maker", "authorUrl": "https://x.com/annmaker", "about": "Draws seals.", "url": "https://example.com/seal", "selectors": ["#seal circle"] },
   { "id": "img", "name": "Dot picture", "author": "Bo", "url": "https://example.com/dot" },
   { "id": "canvas2d", "name": "Canvas circle", "author": "Cy" },
@@ -62,10 +62,10 @@
   const gl = document.getElementById('gl').getContext('webgl');
   if (gl) { gl.clearColor(0.2, 0.4, 0.8, 1); gl.clear(gl.COLOR_BUFFER_BIT); }
   // a part drawn by code: the middle of #stage
-  document.addEventListener('flowers:ready', () => {
-    Flowers.area('scene', () => { const r = document.getElementById('stage').getBoundingClientRect(); return { x: r.left + 40, y: r.top + 30, width: 70, height: 50, radius: 8 }; });
+  document.addEventListener('shoutout:ready', () => {
+    Shoutout.area('scene', () => { const r = document.getElementById('stage').getBoundingClientRect(); return { x: r.left + 40, y: r.top + 30, width: 70, height: 50, radius: 8 }; });
   });
 </script>
-<script src="../../flowers.js" defer></script>
+<script src="../../shoutout.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,2 @@
+{ "name": "shoutout-astro-test", "private": true, "type": "module", "scripts": { "build": "astro build", "preview": "astro preview --port 4322" },
+  "dependencies": { "astro": "4.16.13" } }
