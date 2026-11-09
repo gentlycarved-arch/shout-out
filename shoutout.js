@@ -1,8 +1,8 @@
-/*! Shoutout 2.3.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
+/*! Shoutout 2.4.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
 (() => {
   'use strict';
   if (window.Shoutout) return;
-  const VERSION = '2.3.0';
+  const VERSION = '2.4.0';
 
   const script = document.currentScript;
   const opt = (name, fallback) => (script && script.getAttribute('data-' + name)) || fallback;

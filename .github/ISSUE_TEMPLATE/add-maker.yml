@@ -1,0 +1,16 @@
+name: Add me to Discover
+description: List your maker card, so people find you and the sites that gave you a shoutout.
+title: "Add me to Discover"
+labels: ["add-maker"]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Where your maker card is
+      description: Your site (with a maker.json at /maker.json or /.well-known/maker.json, or a <link rel="maker">), or the address of the maker.json itself, for example a GitHub Gist's raw link.
+      placeholder: https://yoursite.com
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: Make your card at the Shoutout site's "Make your maker card" page. It's read, checked, and added to the list, and this issue is closed. Discover is rebuilt every night.

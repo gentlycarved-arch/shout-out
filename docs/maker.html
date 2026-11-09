@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Make your maker card</title>
+<meta name="description" content="Made a shader, a skill or a tool people use? Say who you are and how you'd like to be credited, in your own words.">
+<link rel="preload" href="fonts/HedvigLettersSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Hedvig Letters Sans, by Kanon Foundry; SIL Open Font License (fonts/OFL.txt) */
+  @font-face { font-family: "Hedvig Letters Sans"; src: url("fonts/HedvigLettersSans-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+  :root { --font: "Hedvig Letters Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; --bg: #ffffff; --fg: #333333; --muted: #8a8a8a; --line: #ececec; --code: #f6f6f6; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
+  main { width: min(30rem, 100% - 32px); margin: 0 auto; padding: 72px 0 96px; }
+  h1 { font-size: 1.25em; font-weight: 400; line-height: 1.3; margin: 0; }
+  .lede { color: var(--muted); margin: 2px 0 28px; }
+  h2 { font-size: 1em; font-weight: 400; margin: 56px 0 12px; }
+  p { margin: 0 0 1.1em; }
+  a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .muted { color: var(--muted); font-size: 14px; }
+
+  /* plain fields with a hairline underneath, like the search */
+  fieldset { border: 0; margin: 0 0 40px; padding: 0; }
+  legend { padding: 0; margin: 0 0 4px; color: var(--muted); font-size: 14px; }
+  label { display: block; margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+  input, select, textarea { display: block; width: 100%; font: inherit; font-size: 16px; color: var(--fg); background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 6px 0; outline: none; -webkit-appearance: none; appearance: none; }
+  textarea { resize: vertical; min-height: 2.4em; }
+  input:focus-visible, select:focus-visible, textarea:focus-visible { border-bottom-color: var(--fg); }
+  ::placeholder { color: var(--muted); opacity: 1; }
+  select { background: none; cursor: pointer; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+  @media (max-width: 480px) { .row { grid-template-columns: 1fr; } }
+  .plain { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .plain:focus-visible { outline: 1px solid var(--fg); outline-offset: 3px; }
+  .remove { color: var(--muted); font-size: 14px; margin-top: 12px; }
+  .actions { display: flex; gap: 20px; flex-wrap: wrap; }
+
+  pre { margin: 0 0 12px; padding: 12px 14px; background: var(--code); overflow-x: auto; font: 13px/1.5 ui-monospace, Menlo, monospace; white-space: pre; max-height: 22em; }
+  ol { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+  ol li { counter-increment: step; display: grid; grid-template-columns: 1.6em 1fr; margin: 0 0 12px; }
+  ol li::before { content: counter(step) "."; color: var(--muted); }
+  dl { margin: 0; }
+  dt { margin: 14px 0 0; }
+  dd { margin: 0; color: var(--muted); font-size: 15px; }
+  [hidden] { display: none !important; }
+  .check { display: flex; gap: 10px; align-items: baseline; color: var(--fg); font-size: 16px; }
+  .check input { width: auto; display: inline; -webkit-appearance: checkbox; appearance: auto; accent-color: var(--fg); }
+  footer { width: min(30rem, 100% - 32px); margin: 0 auto; padding: 0 0 48px; color: var(--muted); font-size: 14px; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Make your maker card</h1>
+  <p class="lede">For the people who make the shaders, skills and tools.</p>
+
+  <p>Your maker card says who you are and how you’d like to be credited, in your own words. When someone credits your work with Shoutout, their agent reads your card first, so your name, your bio and your links are the ones that show. It also puts you in <a href="discover.html">Discover</a>, unless you’d rather not be listed.</p>
+
+  <form id="form" novalidate>
+    <fieldset>
+      <legend>You</legend>
+      <label>Your name<input name="name" placeholder="Praveen Kumar" autocomplete="name"></label>
+      <label>A line about you <span class="muted">(shown under your name)</span><textarea name="about" rows="1" maxlength="200" placeholder="Makes free shaders and textures for Figma."></textarea></label>
+      <label>Where people should go to find you<input name="url" type="url" placeholder="https://…"></label>
+      <label>Your other profiles <span class="muted">(one per line, so you’re found whichever one sites use)</span><textarea name="links" rows="2" placeholder="https://x.com/…&#10;https://github.com/…"></textarea></label>
+      <label>How you’d like to be credited <span class="muted">(optional)</span><input name="credit" placeholder="Credit me as Praveen Kumar, linking to my Figma profile"></label>
+    </fieldset>
+
+    <div id="works"></div>
+    <div class="actions"><button class="plain" type="button" id="add">Add a work</button></div>
+
+    <fieldset style="margin-top:32px">
+      <legend>Being found</legend>
+      <label class="check"><input type="checkbox" name="listed" checked> List me in Discover, and let makers’ search find the sites that credit me</label>
+    </fieldset>
+  </form>
+
+  <h2>Your card</h2>
+  <pre id="card" aria-live="polite"></pre>
+  <div class="actions">
+    <button class="plain" type="button" id="copy">Copy</button>
+    <button class="plain" type="button" id="download">Download maker.json</button>
+  </div>
+  <p class="muted" id="copied" aria-live="polite"></p>
+
+  <h2>Where to put it</h2>
+  <dl>
+    <dt>On your own site</dt><dd>Upload it as <code>maker.json</code> at the top of your site, or at <code>/.well-known/maker.json</code>. Or put it anywhere and add <code>&lt;link rel="maker" href="/me.json"&gt;</code> to your home page.</dd>
+    <dt>No site of your own</dt><dd>Make a public GitHub Gist named <code>maker.json</code> and use its “Raw” link.</dd>
+  </dl>
+
+  <h2>Get listed</h2>
+  <p>Once your card is up, <a href="https://github.com/gentlycarved-arch/shoutout/issues/new?template=add-maker.yml">add yourself to Discover</a> with its address. It’s checked and added the same day.</p>
+  <p class="muted">Rather not be found at all? Untick “List me” above and keep the card up, or <a href="https://github.com/gentlycarved-arch/shoutout/issues/new?template=leave-out.yml">ask to be left out</a> with the link sites use for you. Your work is then left out of Discover and of makers’ search. Sites’ own Shoutout buttons are theirs and don’t change.</p>
+</main>
+<footer><a href="./">Shoutout</a> · <a href="discover.html">Discover makers</a></footer>
+
+<template id="work">
+  <fieldset>
+    <legend>A work</legend>
+    <div class="row">
+      <label>What it is called<input name="wname" placeholder="Dollar Bill Texture Shader"></label>
+      <label>Link to it<input name="wurl" type="url" placeholder="https://…"></label>
+    </div>
+    <label>What kind
+      <select name="wkind">
+        <option value="shader">Shader</option><option value="ui">UI kit or UI skill</option><option value="motion">Motion or animation</option>
+        <option value="icons">Icons</option><option value="font">Font</option><option value="plugin">Plugin or tool</option>
+        <option value="skill">Agent skill</option><option value="template">Template</option><option value="code">Code or library</option>
+        <option value="image">Images or textures</option><option value="other">Something else</option>
+      </select>
+    </label>
+    <button class="plain remove" type="button">Remove</button>
+  </fieldset>
+</template>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const isUrl = (u) => /^https?:\/\/\S+$/i.test(u);
+  function card() {
+    const f = (n) => ($('form').elements[n].value || '').trim();
+    const c = { maker: '1.0', name: f('name') || 'Your name' };
+    if (f('about')) c.about = f('about');
+    if (isUrl(f('url'))) c.url = f('url');
+    const links = f('links').split(/\s+/).filter(isUrl);
+    if (links.length) c.links = links;
+    if (f('credit')) c.credit = f('credit');
+    const works = [...$('works').children].map((fs) => {
+      const g = (n) => fs.querySelector(`[name="${n}"]`).value.trim();
+      if (!g('wname')) return null;
+      const w = { name: g('wname') };
+      if (isUrl(g('wurl'))) w.url = g('wurl');
+      w.kind = g('wkind');
+      return w;
+    }).filter(Boolean);
+    if (works.length) c.works = works;
+    c.listed = $('form').elements.listed.checked;
+    return JSON.stringify(c, null, 2);
+  }
+  const render = () => { $('card').textContent = card(); };
+  function add() {
+    const fs = $('work').content.firstElementChild.cloneNode(true);
+    fs.querySelector('.remove').addEventListener('click', () => { fs.remove(); render(); });
+    $('works').append(fs);
+    render();
+    return fs;
+  }
+  $('form').addEventListener('input', render);
+  $('form').addEventListener('change', render);
+  $('add').addEventListener('click', () => add().querySelector('input').focus());
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('card').textContent); $('copied').textContent = 'Copied.'; }
+    catch { getSelection().selectAllChildren($('card')); $('copied').textContent = 'Selected: press Cmd+C or Ctrl+C to copy.'; }
+  });
+  $('download').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([card() + '\n'], { type: 'application/json' }));
+    a.download = 'maker.json';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  add();
+</script>
+<script>/* the font tool, for trying your own fonts: open this page with ?fonts */ if (/[?&]fonts\b/.test(location.search)) { const s = document.createElement('script'); s.src = 'font-tool.js'; document.body.append(s); }</script>
+</body>
+</html>

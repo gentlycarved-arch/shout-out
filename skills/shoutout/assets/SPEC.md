@@ -179,12 +179,46 @@ Shoutout follows [semantic versioning](https://semver.org). `Shoutout.version` s
 
 ```html
 <!-- one version, never changes -->
-<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@v2.3.0/shoutout.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@v2.4.0/shoutout.js" defer></script>
 <!-- the latest 2.x: fixes arrive by themselves, nothing breaks -->
 <script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@2/shoutout.js" defer></script>
 ```
 
 The `credits.json` format has its own version, separate from the script's, and follows the same rule. `"credit": "1.0"` files are read by every Shoutout; new fields arrive in format 1.1, 1.2 and so on, and older readers ignore them. Anything that would change what an existing field means waits for format 2.0. Files that say `"0.1"` are read as 1.0. Changes are listed in `CHANGELOG.md`.
+
+## Maker cards: maker.json
+
+A maker can say, in their own words, who they are and how they'd like to be credited, by publishing a small file of their own. Agents crediting their work read it first, and the Shoutout site lists makers who publish one in **Discover**.
+
+```json
+{
+  "maker": "1.0",
+  "name": "Praveen Kumar",
+  "about": "Makes free shaders and textures for Figma.",
+  "url": "https://www.figma.com/@praveenisomer",
+  "links": ["https://x.com/example"],
+  "credit": "Credit me as Praveen Kumar, linking to my Figma profile.",
+  "works": [
+    { "name": "Dollar Bill Texture Shader", "url": "https://www.figma.com/community/file/1686908159036705400/dollar-bill-texture-shader", "kind": "shader" }
+  ],
+  "listed": true
+}
+```
+
+| Field | Required | What it is |
+|---|---|---|
+| `maker` | no | The format version, `"1.0"` |
+| `name` | yes | How they'd like to be named |
+| `about` | no | A line about them, up to about 160 characters. Used as a credit's `about` |
+| `url` | no | Where people should go to find them. Used as a credit's `authorUrl` |
+| `links` | no | Their other profiles. Used as a credit's `authorLinks` |
+| `credit` | no | How they'd like to be credited, in a sentence, for agents and people to follow |
+| `works` | no | What they've made: each with a `name`, a `url` and a `kind` (`shader`, `ui`, `motion`, `icons`, `font`, `plugin`, `skill`, `template`, `code`, `image`, `other`) |
+| `listed` | no | `false` keeps them out of Discover, and keeps credits that point to them out of the lists Shoutout publishes. Default `true` |
+
+**Where it lives,** checked in this order: the address itself, if it's a `.json` file (a GitHub Gist's raw link works for makers without a site); a `<link rel="maker" href="…">` on their home page; `/.well-known/maker.json`; `/maker.json`. The Shoutout site has a "Make your maker card" page that writes the file.
+
+**Discover and leaving out.** A maker opens an "Add me to Discover" issue with their card's address; it's read, checked and added to `registry/makers.txt`. Every night `tools/build-index.mjs` reads each card and writes `docs/makers.json`: every listed maker, with the sites whose credits point to them (matched by link or handle, never by name alone). A maker who'd rather not be found sets `"listed": false`, or opens a "Leave me out" issue with the link sites use for them; it's added to `registry/leave-out.txt`, and their credits are left out of `docs/index.json` and `docs/makers.json`. Sites' own Shoutout buttons are theirs and don't change.
 
 ## Finding where your work is credited
 

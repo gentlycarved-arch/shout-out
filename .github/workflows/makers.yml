@@ -1,0 +1,41 @@
+name: Add a maker, or leave one out
+on:
+  issues:
+    types: [opened, edited, labeled]
+permissions:
+  contents: write
+  issues: write
+concurrency: registry
+jobs:
+  maker:
+    if: (contains(github.event.issue.labels.*.name, 'add-maker') || contains(github.event.issue.labels.*.name, 'leave-out')) && github.event.issue.state == 'open'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: add
+        env:
+          BODY: ${{ github.event.issue.body }}
+          MODE: ${{ contains(github.event.issue.labels.*.name, 'leave-out') && 'leave-out' || 'add-maker' }}
+        run: node tools/add-maker.mjs >> "$GITHUB_OUTPUT"
+      - if: steps.add.outputs.added == 'yes'
+        env:
+          WHAT: ${{ steps.add.outputs.what }}
+        run: |
+          git config user.name "shoutout-index"
+          git config user.email "shoutout-index@users.noreply.github.com"
+          git add registry/makers.txt registry/leave-out.txt
+          git commit -m "$WHAT"
+          git push
+          node tools/build-index.mjs
+          git add docs/index.json docs/makers.json
+          git diff --cached --quiet || (git commit -m "Rebuild the credits and makers lists" && git push)
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          MESSAGE: ${{ steps.add.outputs.message }}
+          DONE: ${{ steps.add.outputs.done }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --repo "$GITHUB_REPOSITORY" --body "$MESSAGE"
+          if [ "$DONE" = "yes" ]; then gh issue close ${{ github.event.issue.number }} --repo "$GITHUB_REPOSITORY"; fi

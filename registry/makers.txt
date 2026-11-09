@@ -1,0 +1,2 @@
+# Makers who publish a maker card (maker.json) and want to be found in Discover.
+# One address per line: their site, or the address of their maker.json. To add yours, open an "Add me to Discover" issue.

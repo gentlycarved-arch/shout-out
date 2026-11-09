@@ -36,7 +36,37 @@ export async function readCredits(pageUrl) {
   }
 }
 
+// Find a maker's card: the address itself if it's a .json file; otherwise the page's <link rel="maker">,
+// then /.well-known/maker.json, then /maker.json.
+export async function readMaker(address) {
+  if (!/^https?:\/\//i.test(address)) address = 'https://' + address;
+  if (/\.json([?#].*)?$/i.test(address)) {
+    const got = await get(address);
+    return { source: got.url, data: JSON.parse(got.text) };
+  }
+  let page = null;
+  try { page = await get(address); } catch { /* a site with no page at that address can still have a card */ }
+  if (page) {
+    for (const tag of page.text.match(/<link\b[^>]*>/gi) || []) {
+      const rel = (attr(tag, 'rel') || '').toLowerCase().split(/\s+/);
+      const href = attr(tag, 'href');
+      if (rel.includes('maker') && href) {
+        const src = new URL(href, page.url).href;
+        return { source: src, data: JSON.parse((await get(src)).text) };
+      }
+    }
+  }
+  const base = page ? page.url : address;
+  for (const path of ['/.well-known/maker.json', '/maker.json']) {
+    try {
+      const src = new URL(path, base).href;
+      return { source: src, data: JSON.parse((await get(src)).text) };
+    } catch { /* try the next place */ }
+  }
+  return null;
+}
+
 export const creditsOf = (data) => (Array.isArray(data) ? data : (data && data.credits) || []).filter((c) => c && c.name);
 
 // the matching rules live in docs/match.js, shared with the search page
-export { canon, handleOf, linksOf, matches } from '../docs/match.js';
+export { canon, handleOf, linksOf, matches, normalizeMaker, makerLinks, madeBy } from '../docs/match.js';

@@ -29,7 +29,7 @@ jobs:
           git commit -m "Add $SITE to the list"
           git push
           node tools/build-index.mjs
-          git add docs/index.json
+          git add docs/index.json docs/makers.json
           git diff --cached --quiet || (git commit -m "Rebuild the credits index" && git push)
       - env:
           GH_TOKEN: ${{ github.token }}

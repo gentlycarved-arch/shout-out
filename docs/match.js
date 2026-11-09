@@ -80,3 +80,49 @@ export function matches(credit, query) {
   }
   return [credit.author, credit.name].concat(links).filter(Boolean).some((s) => String(s).toLowerCase().includes(word));
 }
+
+// ---------- makers ----------
+// A maker card (maker.json) is published by the maker: who they are, where to find them, how they'd like to be
+// credited, what they've made, and whether to be listed. normalizeMaker() keeps only what's safe to show.
+
+const httpUrl = (u) => (typeof u === 'string' && /^https?:\/\/\S+$/i.test(u.trim()) ? u.trim().slice(0, 300) : null);
+const text = (s, n) => (typeof s === 'string' && s.trim() ? s.trim().slice(0, n) : '');
+
+export function normalizeMaker(data, source = '') {
+  if (!data || typeof data !== 'object') return null;
+  const name = text(data.name, 120);
+  if (!name) return null;
+  const works = (Array.isArray(data.works) ? data.works : []).slice(0, 50).map((w) => w && typeof w === 'object' && text(w.name, 120)
+    ? { name: text(w.name, 120), url: httpUrl(w.url), kind: text(w.kind, 40).toLowerCase() } : null).filter(Boolean);
+  return {
+    name,
+    about: text(data.about, 200),
+    url: httpUrl(data.url),
+    links: (Array.isArray(data.links) ? data.links : []).map(httpUrl).filter(Boolean).slice(0, 12),
+    credit: text(data.credit, 200),
+    works,
+    listed: data.listed !== false,
+    source,
+  };
+}
+
+// every link that belongs to a maker: their main link, their profiles, and their works
+export function makerLinks(maker) {
+  return [maker.url, ...(maker.links || []), ...((maker.works || []).map((w) => w.url))].filter(Boolean);
+}
+
+// did this maker make this credit? By link or handle, never by name alone
+export function madeBy(maker, credit) {
+  const mine = makerLinks(maker);
+  if (!mine.length) return false;
+  const theirs = linksOf(credit);
+  return theirs.some((u) => {
+    const c = canon(u), h = handleOf(u);
+    return mine.some((m) => {
+      const x = canon(m);
+      if (c === x || (h && handleOf(m) === h)) return true;
+      // "inside this link" only for the maker's own address, never a whole platform like figma.com or github.com
+      return !(x in PROFILE && !x.includes('/')) && c.startsWith(x + '/');
+    });
+  });
+}

@@ -1,0 +1,13 @@
+name: Leave me out
+description: Leave your work out of Shoutout's search and of Discover.
+title: "Leave me out"
+labels: ["leave-out"]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Your profile or site
+      description: The link sites use to credit you, e.g. https://x.com/yourname or https://www.figma.com/@yourname. Credits that point there are left out of the lists Shoutout publishes. Sites' own Shoutout buttons are theirs and aren't changed.
+      placeholder: https://x.com/yourname
+    validations:
+      required: true

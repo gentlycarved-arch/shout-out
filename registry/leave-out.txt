@@ -1,0 +1,2 @@
+# Makers who asked to be left out of the search and of Discover: one profile link per line.
+# Credits that point to these links are left out of docs/index.json. Open a "Leave me out" issue to be added.

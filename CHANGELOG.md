@@ -2,6 +2,12 @@
 
 Shoutout follows [semantic versioning](https://semver.org): within a major version, a release never breaks a site that worked with an earlier one. The `credits.json` format has its own version; `"credit": "1.0"` files are read by every release.
 
+## 2.4.0
+
+- **Maker cards.** Makers can publish a `maker.json`: their name, a line about them, their links, how they'd like to be credited, their works, and whether to be listed. The skill reads a maker's card first, so their own words are the ones that show. The Shoutout site has a "Make your maker card" page that writes it.
+- **Discover.** A new page lists makers who publish a card, searchable and filtered by kind (shaders, UI, motion, agent skills, icons, fonts, plugins), with the sites that gave them a shoutout. Makers add themselves with an "Add me to Discover" issue; the list is rebuilt every night into `docs/makers.json`.
+- **Leaving out.** A maker can set `"listed": false`, or open a "Leave me out" issue, and their credits are left out of the search and Discover.
+
 ## 2.3.0
 
 - **Light and dark.** Shoutout matches the page as it looks. On a light page, the page fades to white, the credited parts keep a soft dark glow, and the pop-ups and list are dark. On a dark page, it fades to near-black with a white glow and white pop-ups, as before. It reads the page's own background, so it follows a site's light/dark switch and the visitor's setting, and changes when they do. `data-theme="light"` or `"dark"` on the script tag fixes it to one.

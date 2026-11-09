@@ -1,4 +1,4 @@
-<!-- Shoutout 2.3.0: rules for coding agents. Add this to your project's AGENTS.md, CLAUDE.md or Cursor rules. Built from https://github.com/gentlycarved-arch/shoutout -->
+<!-- Shoutout 2.4.0: rules for coding agents. Add this to your project's AGENTS.md, CLAUDE.md or Cursor rules. Built from https://github.com/gentlycarved-arch/shoutout -->
 
 When the user shares a link to someone else's tool or work that they're using on the site, mentions a tool they made the site with, or asks to credit, audit or update credits, follow these instructions.
 
@@ -6,7 +6,7 @@ When the user shares a link to someone else's tool or work that they're using on
 
 Shoutout adds a small **Shoutout** button to the bottom of any website. Pressing it fades the page away except for the parts made with someone else's work (a shader behind an image effect, a UI kit's components, a hover from someone's skill), which glow in their own shape, each with a small title linking to the original and "by" its maker; hovering one grows it to show their bio.
 
-- `shoutout.js`: the script, version 2.3.0: download it from https://raw.githubusercontent.com/gentlycarved-arch/shoutout/main/shoutout.js (its version is on its first line)
+- `shoutout.js`: the script, version 2.4.0: download it from https://raw.githubusercontent.com/gentlycarved-arch/shoutout/main/shoutout.js (its version is on its first line)
 - `credits.json`: the list of credits (format in the spec (https://github.com/gentlycarved-arch/shoutout/blob/main/SPEC.md))
 - `data-credit="id"` on the elements each one made
 
@@ -15,6 +15,7 @@ Do this quietly as part of the work. The user shouldn't have to ask twice or fil
 ## When the user shares something they're using
 
 1. **Read the link** to fill in the entry: the tool's own name, the maker's name or handle, the maker's page, and the license or terms. Get these from the page itself, the repo's LICENSE and README, or the post. If a page needs a browser to show its content (Figma Community, many social sites), open it in a browser rather than giving up. Never invent an author or license. If the page can't be read or doesn't say, leave the field out and tell the user what's missing in one line.
+   - **The maker's own card comes first.** Look for their `maker.json`: on their own site at `/maker.json` or `/.well-known/maker.json`, or linked from their home page with `<link rel="maker">`, or in the Discover list at `https://gentlycarved-arch.github.io/shoutout/makers.json`. If there is one, use its `name` as `author`, its `url` as `authorUrl`, its `links` as `authorLinks` and its `about` as `about`, and follow its `credit` line (how they'd like to be credited) for the wording and the link. Then skip the two steps below.
    - **The maker's other profiles (`authorLinks`):** when the maker's page links to their other profiles (X, GitHub, Instagram, their own site), list them, so the maker finds the credit whichever one they search by.
    - **The maker's bio (`about`):** open the maker's profile and copy their own bio, word for word, trimmed to about 160 characters at a sentence or phrase break. Where to look, in order: GitHub (`https://api.github.com/users/<name>` gives `bio`); their own website (the `<meta name="description">` or the first line of their about page); their X, Instagram, Bluesky, Dribbble or Figma profile, if it can be read. Never write or polish a bio yourself, and never paste in someone else's description of them. If no bio can be read, leave `about` out and say so in one line.
 2. **Is it a part or a tool?**

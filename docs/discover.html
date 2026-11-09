@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discover makers</title>
+<meta name="description" content="The people behind the shaders, skills and tools that sites give a shoutout to.">
+<link rel="preload" href="fonts/HedvigLettersSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Hedvig Letters Sans, by Kanon Foundry; SIL Open Font License (fonts/OFL.txt) */
+  @font-face { font-family: "Hedvig Letters Sans"; src: url("fonts/HedvigLettersSans-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+  :root { --font: "Hedvig Letters Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; --bg: #ffffff; --fg: #333333; --muted: #8a8a8a; --line: #ececec; --code: #f6f6f6; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
+  main { width: min(30rem, 100% - 32px); margin: 0 auto; padding: 72px 0 96px; }
+  h1 { font-size: 1.25em; font-weight: 400; line-height: 1.3; margin: 0; }
+  .lede { color: var(--muted); margin: 2px 0 28px; }
+  h2 { font-size: 1em; font-weight: 400; margin: 56px 0 12px; }
+  p { margin: 0 0 1.1em; }
+  a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .muted { color: var(--muted); font-size: 14px; }
+
+  /* one credit: plain fields with a hairline underneath, like the search */
+  fieldset { border: 0; margin: 0 0 40px; padding: 0; }
+  legend { padding: 0; margin: 0 0 4px; color: var(--muted); font-size: 14px; }
+  label { display: block; margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+  input, select, textarea { display: block; width: 100%; font: inherit; font-size: 16px; color: var(--fg); background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 6px 0; outline: none; -webkit-appearance: none; appearance: none; }
+  textarea { resize: vertical; min-height: 2.4em; }
+  input:focus-visible, select:focus-visible, textarea:focus-visible { border-bottom-color: var(--fg); }
+  ::placeholder { color: var(--muted); opacity: 1; }
+  select { background: none; cursor: pointer; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+  @media (max-width: 480px) { .row { grid-template-columns: 1fr; } }
+  .plain { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .plain:focus-visible { outline: 1px solid var(--fg); outline-offset: 3px; }
+  .remove { color: var(--muted); font-size: 14px; margin-top: 12px; }
+  .actions { display: flex; gap: 20px; flex-wrap: wrap; }
+
+  pre { margin: 0 0 12px; padding: 12px 14px; background: var(--code); overflow-x: auto; font: 13px/1.5 ui-monospace, Menlo, monospace; white-space: pre; max-height: 22em; }
+  ol { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+  ol li { counter-increment: step; display: grid; grid-template-columns: 1.6em 1fr; margin: 0 0 12px; }
+  ol li::before { content: counter(step) "."; color: var(--muted); }
+  dl { margin: 0; }
+  dt { margin: 14px 0 0; }
+  dd { margin: 0; color: var(--muted); font-size: 15px; }
+  [hidden] { display: none !important; }
+  .search { display: flex; gap: 20px; align-items: baseline; }
+  .kinds { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 16px 0 8px; font-size: 14px; }
+  .kinds button { font: inherit; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; }
+  .kinds button[aria-pressed="true"] { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .kinds button:focus-visible { outline: 1px solid var(--fg); outline-offset: 3px; }
+  .status { color: var(--muted); font-size: 14px; margin: 12px 0 0; min-height: 1.4em; }
+  .makers { list-style: none; margin: 24px 0 0; padding: 0; }
+  .makers > li { margin: 0 0 36px; }
+  .makers .name { font-size: 1em; margin: 0; }
+  .makers .about { color: var(--muted); margin: 0 0 6px; }
+  .makers .works, .makers .sites { margin: 6px 0 0; font-size: 15px; }
+  .makers .label { color: var(--muted); font-size: 14px; }
+  .makers .credit { color: var(--muted); font-size: 14px; margin: 6px 0 0; }
+  footer { width: min(30rem, 100% - 32px); margin: 0 auto; padding: 0 0 48px; color: var(--muted); font-size: 14px; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Discover makers</h1>
+  <p class="lede">The people behind the shaders, skills and tools that sites give a shoutout to.</p>
+
+  <form class="search" id="f" role="search">
+    <input id="q" type="search" placeholder="A name, a tool, or a kind of thing" aria-label="Search makers" autocomplete="off">
+  </form>
+  <div class="kinds" id="kinds" role="group" aria-label="Show"></div>
+  <p class="status" id="status" aria-live="polite"></p>
+  <ul class="makers" id="makers"></ul>
+
+  <p class="muted">Make things people use? <a href="maker.html">Make your maker card</a> and add yourself.</p>
+</main>
+<footer><a href="./">Shoutout</a> · <a href="maker.html">Make your maker card</a></footer>
+
+<script>
+  const KINDS = [['', 'Everyone'], ['shader', 'Shaders'], ['ui', 'UI'], ['motion', 'Motion'], ['skill', 'Agent skills'], ['icons', 'Icons'], ['font', 'Fonts'], ['plugin', 'Plugins and tools'], ['other', 'Other']];
+  const OTHER = new Set(['template', 'code', 'image', 'other', '']);
+  const kindOf = (k) => (k === 'animation' ? 'motion' : k === 'icon' ? 'icons' : k === 'tool' ? 'plugin' : OTHER.has(k) || !KINDS.some(([v]) => v === k) ? 'other' : k);
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs = {}, ...kids) => { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); n.append(...kids.filter((k) => k != null)); return n; };
+  const link = (href, text) => (href ? el('a', { href, target: '_blank', rel: 'noopener' }, text) : el('span', {}, text));
+  let all = [], kind = '';
+
+  for (const [value, label] of KINDS) {
+    const b = el('button', { type: 'button', 'aria-pressed': String(value === kind) }, label);
+    b.addEventListener('click', () => { kind = value; for (const x of $('kinds').children) x.setAttribute('aria-pressed', String(x === b)); show(); });
+    $('kinds').append(b);
+  }
+
+  function show() {
+    const q = $('q').value.trim().toLowerCase().replace(/^@/, '');
+    const list = all.filter((m) => (!kind || (m.works || []).some((w) => kindOf(w.kind) === kind))
+      && (!q || [m.name, m.about, m.url, ...(m.links || []), ...(m.works || []).flatMap((w) => [w.name, w.url, w.kind])].filter(Boolean).some((s) => String(s).toLowerCase().includes(q))));
+    const out = $('makers');
+    out.textContent = '';
+    for (const m of list) {
+      const works = (m.works || []).filter((w) => !kind || kindOf(w.kind) === kind);
+      const li = el('li', {},
+        el('h2', { class: 'name' }, link(m.url, m.name)),
+        m.about ? el('p', { class: 'about' }, m.about) : null);
+      if (works.length) {
+        const p = el('p', { class: 'works' }, el('span', { class: 'label' }, 'Made '));
+        works.forEach((w, i) => { if (i) p.append(', '); p.append(link(w.url, w.name)); });
+        li.append(p);
+      }
+      if (m.shoutouts && m.shoutouts.length) {
+        const p = el('p', { class: 'sites' }, el('span', { class: 'label' }, (m.shoutouts.length === 1 ? 'A shoutout from ' : m.shoutouts.length + ' shoutouts, from ')));
+        const sites = [...new Map(m.shoutouts.map((s) => [s.site, s])).values()];
+        sites.slice(0, 6).forEach((s, i) => { if (i) p.append(', '); p.append(link(s.site, s.name || s.site.replace(/^https?:\/\//, ''))); });
+        if (sites.length > 6) p.append(' and ' + (sites.length - 6) + ' more');
+        li.append(p);
+      }
+      if (m.credit) li.append(el('p', { class: 'credit' }, 'How to credit them: ' + m.credit));
+      out.append(li);
+    }
+    $('status').textContent = !all.length ? 'No makers are listed yet. Be the first.' : list.length ? list.length + (list.length === 1 ? ' maker' : ' makers') + '.' : 'No one matches that yet.';
+  }
+
+  $('q').addEventListener('input', show);
+  $('f').addEventListener('submit', (e) => { e.preventDefault(); show(); });
+  fetch('makers.json', { cache: 'no-cache' }).then((r) => r.json()).catch(() => ({ makers: [] })).then((d) => { all = d.makers || []; show(); });
+</script>
+<script>/* the font tool, for trying your own fonts: open this page with ?fonts */ if (/[?&]fonts\b/.test(location.search)) { const s = document.createElement('script'); s.src = 'font-tool.js'; document.body.append(s); }</script>
+</body>
+</html>
