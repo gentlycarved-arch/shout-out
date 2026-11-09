@@ -12,19 +12,19 @@
   :root { --font: "Hedvig Letters Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; --bg: #ffffff; --fg: #333333; --muted: #8a8a8a; --line: #ececec; --code: #f6f6f6; }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
-  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
   main { width: min(30rem, 100% - 32px); margin: 0 auto; padding: 72px 0 96px; }
   h1 { font-size: 1.25em; font-weight: 400; line-height: 1.3; margin: 0; }
   .lede { color: var(--muted); margin: 2px 0 28px; }
   h2 { font-size: 1em; font-weight: 400; margin: 56px 0 12px; }
   p { margin: 0 0 1.1em; }
   a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-  .muted { color: var(--muted); font-size: 14px; }
+  .muted { color: var(--muted); font-size: 13px; }
 
   /* one credit: plain fields with a hairline underneath, like the search */
   fieldset { border: 0; margin: 0 0 40px; padding: 0; }
-  legend { padding: 0; margin: 0 0 4px; color: var(--muted); font-size: 14px; }
-  label { display: block; margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+  legend { padding: 0; margin: 0 0 4px; color: var(--muted); font-size: 13px; }
+  label { display: block; margin: 14px 0 0; font-size: 13px; color: var(--muted); }
   input, select, textarea { display: block; width: 100%; font: inherit; font-size: 16px; color: var(--fg); background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 6px 0; outline: none; -webkit-appearance: none; appearance: none; }
   textarea { resize: vertical; min-height: 2.4em; }
   input:focus-visible, select:focus-visible, textarea:focus-visible { border-bottom-color: var(--fg); }
@@ -34,18 +34,18 @@
   @media (max-width: 480px) { .row { grid-template-columns: 1fr; } }
   .plain { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
   .plain:focus-visible { outline: 1px solid var(--fg); outline-offset: 3px; }
-  .remove { color: var(--muted); font-size: 14px; margin-top: 12px; }
+  .remove { color: var(--muted); font-size: 13px; margin-top: 12px; }
   .actions { display: flex; gap: 20px; flex-wrap: wrap; }
 
-  pre { margin: 0 0 12px; padding: 12px 14px; background: var(--code); overflow-x: auto; font: 13px/1.5 ui-monospace, Menlo, monospace; white-space: pre; max-height: 22em; }
+  pre { margin: 0 0 12px; padding: 12px 14px; background: var(--code); overflow-x: auto; font: 12.5px/1.5 ui-monospace, Menlo, monospace; white-space: pre; max-height: 22em; }
   ol { margin: 0; padding: 0; list-style: none; counter-reset: step; }
   ol li { counter-increment: step; display: grid; grid-template-columns: 1.6em 1fr; margin: 0 0 12px; }
   ol li::before { content: counter(step) "."; color: var(--muted); }
   dl { margin: 0; }
   dt { margin: 14px 0 0; }
-  dd { margin: 0; color: var(--muted); font-size: 15px; }
+  dd { margin: 0; color: var(--muted); font-size: 14px; }
   [hidden] { display: none !important; }
-  footer { width: min(30rem, 100% - 32px); margin: 0 auto; padding: 0 0 48px; color: var(--muted); font-size: 14px; }
+  footer { width: min(30rem, 100% - 32px); margin: 0 auto; padding: 0 0 48px; color: var(--muted); font-size: 13px; }
   footer a { color: inherit; }
 </style>
 </head>
