@@ -15,7 +15,11 @@ for (const site of [...new Set(list)]) {
     const got = await readCredits(site);
     if (!got) { console.log('no credits  ', site); continue; }
     const data = got.data || {};
-    const credits = creditsOf(data).map((c) => Object.fromEntries(KEEP.filter((k) => typeof c[k] === 'string').map((k) => [k, c[k].slice(0, 500)])));
+    const credits = creditsOf(data).map((c) => {
+      const kept = Object.fromEntries(KEEP.filter((k) => typeof c[k] === 'string').map((k) => [k, c[k].slice(0, 500)]));
+      if (Array.isArray(c.authorLinks)) kept.authorLinks = c.authorLinks.filter((u) => typeof u === 'string' && /^https?:\/\//i.test(u)).slice(0, 10).map((u) => u.slice(0, 300));
+      return kept;
+    });
     sites.push({ site: got.page, name: typeof data.site === 'string' ? data.site.slice(0, 120) : '', credits });
     console.log('read        ', site, '(' + credits.length + ')');
   } catch (err) {

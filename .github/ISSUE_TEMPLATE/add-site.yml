@@ -1,0 +1,16 @@
+name: Add my site
+description: List a site that uses Flowers, so makers can find the credits it gives them.
+title: "Add my site"
+labels: ["add-site"]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Site address
+      description: The page with the Credits button, e.g. https://example.com
+      placeholder: https://example.com
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: The site is checked for its credits (a <link rel="credits">, inline credits, or /credits.json), added to the list, and this issue is closed. The list is rebuilt every night.

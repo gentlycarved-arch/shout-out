@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flowers test page</title>
+<style>
+  body { margin: 0; font: 14px/1.4 sans-serif; background: #fafafa; }
+  main { display: grid; grid-template-columns: repeat(auto-fill, 150px); gap: 40px 24px; padding: 24px; }
+  .cell { width: 150px; height: 110px; }
+  #box { background: #ddd; border-radius: 12px; }
+  #clip { background: #393; clip-path: circle(50% at 50% 50%); }
+  #bg { background: url(dot.svg) center / contain no-repeat; }
+  .lift { transition: transform .3s; }
+  .lift:hover, .lift[data-flowers-hover] { transform: translateY(-4px); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #spin { animation: spin 3s linear infinite; background: #c93; }
+  iframe { border: 0; }
+  footer { padding: 16px; }
+</style>
+<script type="application/credits+json">
+{ "credit": "1.0", "site": "Flowers tests", "credits": [
+  { "id": "svg-circle", "name": "Seal", "author": "Ann Maker", "authorUrl": "https://x.com/annmaker", "about": "Draws seals.", "url": "https://example.com/seal", "selectors": ["#seal circle"] },
+  { "id": "img", "name": "Dot picture", "author": "Bo", "url": "https://example.com/dot" },
+  { "id": "canvas2d", "name": "Canvas circle", "author": "Cy" },
+  { "id": "webgl", "name": "WebGL scene", "author": "Di" },
+  { "id": "clip", "name": "Clip circle", "author": "Ed" },
+  { "id": "bg", "name": "Background dot", "author": "Fi" },
+  { "id": "box", "name": "Rounded card", "author": "Gu" },
+  { "id": "in-frame", "name": "Framed part", "author": "Ha" },
+  { "id": "scene", "name": "Drawn by code", "author": "Io" },
+  { "id": "lift", "name": "Lift hover", "author": "Jo", "replay": "hover" },
+  { "id": "scripted", "name": "Scripted hover", "author": "Ka", "replay": "hover-events" },
+  { "id": "spin", "name": "Spin", "author": "Lu", "replay": "animation" },
+  { "id": "font", "name": "A typeface", "author": "Mo" },
+  { "id": "plugin", "name": "Banknote Engraver", "author": "No Maker", "role": "tool", "url": "https://example.com/engraver" }
+] }
+</script>
+</head>
+<body>
+<main>
+  <svg id="seal" class="cell" viewBox="0 0 150 110"><rect width="150" height="110" fill="#f0f0f0"/><circle cx="75" cy="55" r="40" fill="#555"/></svg>
+  <img class="cell" src="dot.svg" data-credit="img" alt="">
+  <canvas id="c2d" class="cell" width="150" height="110" data-credit="canvas2d"></canvas>
+  <canvas id="gl" class="cell" width="150" height="110" data-credit="webgl"></canvas>
+  <div id="clip" class="cell" data-credit="clip"></div>
+  <div id="bg" class="cell" data-credit="bg"></div>
+  <div id="box" class="cell" data-credit="box"></div>
+  <iframe id="frame" class="cell" src="frame.html"></iframe>
+  <div id="stage" class="cell" style="background:#222"></div>
+  <button class="lift" data-credit="lift">Lift</button>
+  <button id="scripted" data-credit="scripted">Scripted</button>
+  <div id="spin" class="cell" data-credit="spin"></div>
+</main>
+<footer>Test footer</footer>
+<script>
+  window.counts = { liftEnter: 0, scriptedEnter: 0 };
+  document.querySelector('.lift').addEventListener('mouseenter', () => counts.liftEnter++);
+  document.querySelector('#scripted').addEventListener('mouseenter', () => counts.scriptedEnter++);
+  const g = document.getElementById('c2d').getContext('2d');
+  g.fillStyle = '#36c'; g.beginPath(); g.arc(75, 55, 40, 0, Math.PI * 2); g.fill();
+  const gl = document.getElementById('gl').getContext('webgl');
+  if (gl) { gl.clearColor(0.2, 0.4, 0.8, 1); gl.clear(gl.COLOR_BUFFER_BIT); }
+  // a part drawn by code: the middle of #stage
+  document.addEventListener('flowers:ready', () => {
+    Flowers.area('scene', () => { const r = document.getElementById('stage').getBoundingClientRect(); return { x: r.left + 40, y: r.top + 30, width: 70, height: 50, radius: 8 }; });
+  });
+</script>
+<script src="../../flowers.js" defer></script>
+</body>
+</html>

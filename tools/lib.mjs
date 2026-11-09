@@ -1,6 +1,6 @@
 // Shared by find.mjs and build-index.mjs: read a site's credits, and match them against a creator.
 
-const UA = 'FlowersFinder/0.1 (+https://github.com/gentlycarved-arch/flowers)';
+const UA = 'FlowersFinder/1.0 (+https://github.com/gentlycarved-arch/flowers)';
 
 async function get(url, timeoutMs = 15000) {
   const res = await fetch(url, { headers: { 'user-agent': UA, accept: 'text/html,application/json;q=0.9,*/*;q=0.5' }, redirect: 'follow', signal: AbortSignal.timeout(timeoutMs) });
@@ -38,25 +38,5 @@ export async function readCredits(pageUrl) {
 
 export const creditsOf = (data) => (Array.isArray(data) ? data : (data && data.credits) || []).filter((c) => c && c.name);
 
-// "https://www.X.com/Handle/" → "x.com/handle"
-export function bare(u) {
-  try {
-    const x = new URL(/^https?:\/\//i.test(u) ? u : 'https://' + u);
-    return (x.hostname.replace(/^www\./, '') + x.pathname.replace(/\/+$/, '')).toLowerCase();
-  } catch {
-    return String(u).toLowerCase();
-  }
-}
-
-// A creator is found by a link (their profile, their tool's page, their repo) or by a name or @handle.
-export function matches(credit, query) {
-  const q = String(query).trim();
-  if (!q) return false;
-  const looksLikeUrl = /^https?:\/\//i.test(q) || /^[\w-]+(\.[\w-]+)+\//.test(q) || /^[\w-]+\.[a-z]{2,}$/i.test(q);
-  if (looksLikeUrl) {
-    const b = bare(q);
-    return [credit.url, credit.authorUrl].filter(Boolean).some((u) => { const x = bare(u); return x === b || x.startsWith(b + '/'); });
-  }
-  const words = q.replace(/^@/, '').toLowerCase();
-  return [credit.author, credit.name, credit.authorUrl].filter(Boolean).some((s) => String(s).toLowerCase().includes(words));
-}
+// the matching rules live in docs/match.js, shared with the search page
+export { canon, handleOf, linksOf, matches } from '../docs/match.js';

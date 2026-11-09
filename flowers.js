@@ -1,7 +1,8 @@
-/*! Flowers 0.1 · give the makers their flowers: a button that fades a website back to the parts made with other people's tools · MIT */
+/*! Flowers 1.0.0 · give the makers their flowers: a button that fades a website back to the parts made with other people's tools · MIT */
 (() => {
   'use strict';
   if (window.Flowers) return;
+  const VERSION = '1.0.0';
 
   const script = document.currentScript;
   const opt = (name, fallback) => (script && script.getAttribute('data-' + name)) || fallback;
@@ -35,25 +36,53 @@
         note: c.note ? String(c.note).trim().slice(0, 200) : '',
         url: isUrl(c.url) ? c.url : isUrl(c.authorUrl) ? c.authorUrl : '',
         selectors: [].concat(c.selectors || []).map(String),
-        replay: c.replay === 'hover' || c.replay === 'animation' ? c.replay : '',
+        role: c.role === 'tool' ? 'tool' : 'part',   // a tool you made the site with, or a part of the site
+        replay: ['hover', 'hover-events', 'animation'].includes(c.replay) ? c.replay : '',
       }));
+  }
+
+  // the page and every same-origin <iframe> in it (a cross-origin frame can only be credited as a whole)
+  function documents(doc = document, out = []) {
+    out.push(doc);
+    for (const f of doc.querySelectorAll('iframe, frame')) {
+      try { if (f.contentDocument && f.contentDocument.documentElement) documents(f.contentDocument, out); } catch (e) { /* another origin */ }
+    }
+    return out;
   }
 
   function targetsOf(credit) {
     const found = new Set();
-    document.querySelectorAll('[data-credit]').forEach((el) => {
-      if (el.getAttribute('data-credit').split(/\s+/).includes(credit.id)) found.add(el);
-    });
-    credit.selectors.forEach((s) => {
-      try { document.querySelectorAll(s).forEach((el) => found.add(el)); } catch (e) { console.warn('Flowers: bad selector', s); }
-    });
+    for (const doc of documents()) {
+      doc.querySelectorAll('[data-credit]').forEach((el) => {
+        if (el.getAttribute('data-credit').split(/\s+/).includes(credit.id)) found.add(el);
+      });
+      credit.selectors.forEach((s) => {
+        try { doc.querySelectorAll(s).forEach((el) => found.add(el)); } catch (e) { if (doc === document) console.warn('Flowers: bad selector', s); }
+      });
+    }
     return [...found];
+  }
+
+  const css = (el) => el.ownerDocument.defaultView.getComputedStyle(el);
+  // where an element's frame sits on the page, so parts inside an <iframe> line up
+  function offsetOf(el) {
+    let x = 0, y = 0, w = el.ownerDocument.defaultView;
+    while (w && w !== window && w.frameElement) {
+      const f = w.frameElement, r = f.getBoundingClientRect();
+      x += r.left + f.clientLeft; y += r.top + f.clientTop;
+      w = w.parent;
+    }
+    return { x, y };
+  }
+  function rectOf(el) {
+    const r = el.getBoundingClientRect(), o = offsetOf(el);
+    return o.x || o.y ? new DOMRect(r.left + o.x, r.top + o.y, r.width, r.height) : r;
   }
 
   function visibleRect(el) {
     if (!el || !el.isConnected) return null;
     if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return null;
-    const r = el.getBoundingClientRect();
+    const r = rectOf(el);
     if (r.width < 2 || r.height < 2) return null;
     return r;
   }
@@ -226,8 +255,19 @@ a { color: inherit; text-decoration: none; }
       + '</defs><rect class="fill" x="0" y="0" width="100%" height="100%" mask="url(#flowers-holes)"/><g class="halos" filter="url(#flowers-halo)"></g>';
     // hovering (or tapping) a credited part shows who made it; clicking anywhere else brings the page back
     fade.addEventListener('pointermove', (e) => { const m = hit(e); fade.style.cursor = m ? 'default' : 'pointer'; if (e.pointerType !== 'touch') hover(m); });
-    fade.addEventListener('pointerleave', () => hover(null));
-    fade.addEventListener('click', (e) => { const m = hit(e); if (m) hover(m, true); else close(); });
+    fade.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') hover(null); });   // a lifted finger "leaves" too
+    // A tap is handled when the finger lifts: iPhone Safari can swallow the click that would follow, because the glow
+    // moves every frame and Safari takes that for the page answering a hover. A finger that moved was a scroll.
+    const act = (e) => { const m = hit(e); if (m) hover(m, true); else close(); };
+    let down = null, tapped = 0;
+    fade.addEventListener('pointerdown', (e) => { down = e.pointerType === 'mouse' ? null : { x: e.clientX, y: e.clientY }; });
+    fade.addEventListener('pointerup', (e) => {
+      if (!down) return;
+      const still = Math.hypot(e.clientX - down.x, e.clientY - down.y) < 10;
+      down = null;
+      if (still) { tapped = performance.now(); act(e); }
+    });
+    fade.addEventListener('click', (e) => { if (performance.now() - tapped < 700) return; act(e); });
     holes = fade.querySelector('.holes');
     halos = fade.querySelector('.halos');
     defs = fade.querySelector('defs');
@@ -242,81 +282,161 @@ a { color: inherit; text-decoration: none; }
 
   const ns = 'http://www.w3.org/2000/svg';
   // ---------- the shape of a part ----------
-  // An SVG drawing is copied with its own masks, clips and fills, so a round seal is round;
-  // a picture keeps its transparent edges; anything else is its box with its own rounded corners.
+  // An SVG drawing is copied with its own masks, clips and fills, so a round seal is round; a picture or a canvas
+  // keeps its see-through edges; a CSS clip-path keeps its shape; a plain wrapper is the icons and pictures in it;
+  // anything else is its box with its own rounded corners.
   let imported = new Map(), uid = 0;
   const URL_REF = /url\(\s*["']?#([^"')\s]+)["']?\s*\)/g;
-  function importRef(id) {
-    if (imported.has(id)) return imported.get(id);
-    const src = document.getElementById(id);
+  const isSvg = (el) => el.namespaceURI === ns;
+  function importRef(id, doc) {
+    const key = id + '\u0000' + (doc === document ? '' : doc.URL);
+    if (imported.has(key)) return imported.get(key);
+    const src = doc.getElementById(id);
     if (!src) return null;
     const copy = src.cloneNode(true), fresh = 'flowers-d' + (++uid);
-    imported.set(id, fresh);
+    imported.set(key, fresh);
     copy.id = fresh;
     for (const n of [copy, ...copy.querySelectorAll('*')]) {
       if (n !== copy && n.id) n.removeAttribute('id');
       for (const a of [...n.attributes]) {
-        if (URL_REF.test(a.value)) n.setAttribute(a.name, a.value.replace(URL_REF, (_, ref) => { const r = importRef(ref); return r ? 'url(#' + r + ')' : 'none'; }));
+        if (URL_REF.test(a.value)) n.setAttribute(a.name, a.value.replace(URL_REF, (_, ref) => { const r = importRef(ref, doc); return r ? 'url(#' + r + ')' : 'none'; }));
         URL_REF.lastIndex = 0;
-        if ((a.name === 'href' || a.name === 'xlink:href') && a.value.startsWith('#')) { const r = importRef(a.value.slice(1)); if (r) n.setAttribute(a.name, '#' + r); }
+        if ((a.name === 'href' || a.name === 'xlink:href') && a.value.startsWith('#')) { const r = importRef(a.value.slice(1), doc); if (r) n.setAttribute(a.name, '#' + r); }
+        else if ((a.name === 'href' || a.name === 'xlink:href') && a.value) n.setAttribute(a.name, new URL(a.value, doc.baseURI).href);
       }
     }
-    defs.append(copy);
+    defs.append(document.importNode(copy, true));
     return fresh;
   }
   const LOOK = ['fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray',
     'opacity', 'display', 'visibility', 'mask', 'clip-path', 'filter', 'font-family', 'font-size', 'font-weight', 'letter-spacing', 'text-anchor', 'dominant-baseline'];
   function copyLook(src, dst) {
-    const cs = getComputedStyle(src);
+    const cs = css(src), doc = src.ownerDocument;
     dst.removeAttribute('class');
     dst.removeAttribute('style');
     for (const p of LOOK) {
       const v = cs.getPropertyValue(p);
-      if (v) dst.style.setProperty(p, v.replace(URL_REF, (_, ref) => { const r = importRef(ref); return r ? 'url(#' + r + ')' : 'none'; }));
+      if (v) dst.style.setProperty(p, v.replace(URL_REF, (_, ref) => { const r = importRef(ref, doc); return r ? 'url(#' + r + ')' : 'none'; }));
       URL_REF.lastIndex = 0;
     }
     for (const a of ['href', 'xlink:href']) {
       const v = dst.getAttribute(a);
-      if (v && !v.startsWith('#')) dst.setAttribute(a, new URL(v, document.baseURI).href);
+      if (v && !v.startsWith('#')) dst.setAttribute(a, new URL(v, doc.baseURI).href);
     }
   }
-  function svgShape(el) {
+  function copyOf(el) {
     const copy = el.cloneNode(true);
-    copy.removeAttribute('transform');   // the element's own transform is part of getScreenCTM()
-    copy.removeAttribute('id');
     const from = [el, ...el.querySelectorAll('*')], to = [copy, ...copy.querySelectorAll('*')];
     from.forEach((n, i) => to[i] && copyLook(n, to[i]));
     copy.style.removeProperty('opacity');   // the shape is the part, however faint it's drawn
+    copy.removeAttribute('id');
+    return document.importNode(copy, true);
+  }
+  function svgShape(el) {
+    const copy = copyOf(el);
+    copy.removeAttribute('transform');   // the element's own transform is part of getScreenCTM()
     return copy;
   }
-  // a whole <svg>, copied as a nested <svg> placed over the original
   function svgRoot(el) {
-    const copy = el.cloneNode(true);
-    const from = [el, ...el.querySelectorAll('*')], to = [copy, ...copy.querySelectorAll('*')];
-    from.forEach((n, i) => to[i] && copyLook(n, to[i]));
-    copy.style.removeProperty('opacity');
+    const copy = copyOf(el);
     copy.setAttribute('overflow', 'visible');
     return copy;
   }
-  function picture(el) {
+  const FIT = { cover: 'xMidYMid slice', contain: 'xMidYMid meet', 'scale-down': 'xMidYMid meet', fill: 'none' };
+  function image(href, aspect) {
     const n = document.createElementNS(ns, 'image');
-    n.setAttribute('href', el.currentSrc);
-    const fit = getComputedStyle(el).objectFit;
-    n.setAttribute('preserveAspectRatio', fit === 'cover' ? 'xMidYMid slice' : fit === 'contain' || fit === 'scale-down' ? 'xMidYMid meet' : 'none');
+    n.setAttribute('href', href);
+    n.setAttribute('preserveAspectRatio', aspect);
     return n;
   }
+  // a CSS background picture that isn't tiled: its own see-through edges, placed as the CSS places it
+  function backgroundAspect(cs) {
+    if (!/^url\(/.test(cs.backgroundImage) || cs.backgroundImage.includes(',') || !/no-repeat/.test(cs.backgroundRepeat)) return null;
+    const size = cs.backgroundSize.trim();
+    const pos = cs.backgroundPosition.split(/\s+/).map((v) => ({ '0%': 'Min', '50%': 'Mid', '100%': 'Max' })[v]);
+    if (!pos[0] || !pos[1]) return null;
+    const align = 'x' + pos[0] + 'Y' + pos[1];
+    if (size === 'cover') return align + ' slice';
+    if (size === 'contain') return align + ' meet';
+    if (size === '100% 100%') return 'none';
+    return null;
+  }
+  // a canvas: its see-through shape, read now and again; a WebGL canvas that can't be read is its box
+  function canvasShape(el) {
+    const probe = document.createElement('canvas');
+    probe.width = probe.height = 48;
+    const read = () => {
+      try {
+        const g = probe.getContext('2d', { willReadFrequently: true });
+        g.clearRect(0, 0, 48, 48);
+        g.drawImage(el, 0, 0, 48, 48);
+        const a = g.getImageData(0, 0, 48, 48).data;
+        let clear = 0, solid = 0;
+        for (let i = 3; i < a.length; i += 4) { if (a[i] === 0) clear++; else if (a[i] === 255) solid++; }
+        const all = a.length / 4;
+        if (clear === all || solid === all) return null;   // blank (unreadable WebGL) or fully opaque: the box says it all
+        return el.toDataURL();
+      } catch (e) { return null; }   // a canvas showing another site's picture can't be read
+    };
+    return read;
+  }
+  // CSS clip-path: circle(), ellipse(), inset() and polygon() keep their shape
+  function clipShape(value, w, h) {
+    const m = /^(circle|ellipse|inset|polygon)\((.*)\)/.exec(value || '');
+    if (!m) return null;
+    const len = (v, ref) => (v.endsWith('%') ? parseFloat(v) / 100 * ref : parseFloat(v)) || 0;
+    const at = (str) => {
+      const p = (str || '50% 50%').trim().split(/\s+/).map((v) => ({ left: '0%', top: '0%', center: '50%', right: '100%', bottom: '100%' })[v] || v);
+      return [len(p[0], w), len(p[1] || '50%', h)];
+    };
+    const [shape, args] = [m[1], m[2]];
+    if (shape === 'circle' || shape === 'ellipse') {
+      const [radii, pos] = args.split(/\s+at\s+/);
+      const [cx, cy] = at(pos);
+      const side = (v, ref, c) => v === 'farthest-side' ? Math.max(c, ref - c) : v === 'closest-side' || !v ? Math.min(c, ref - c) : len(v, ref);
+      const rs = (radii || '').trim().split(/\s+/).filter(Boolean);
+      if (shape === 'circle') {
+        const r = rs[0] && rs[0].endsWith('%') ? parseFloat(rs[0]) / 100 * Math.hypot(w, h) / Math.SQRT2
+          : rs[0] === 'farthest-side' ? Math.max(cx, w - cx, cy, h - cy) : !rs[0] || rs[0] === 'closest-side' ? Math.min(cx, w - cx, cy, h - cy) : parseFloat(rs[0]);
+        return ['circle', { cx, cy, r }];
+      }
+      return ['ellipse', { cx, cy, rx: side(rs[0], w, cx), ry: side(rs[1], h, cy) }];
+    }
+    if (shape === 'inset') {
+      const [box, round] = args.split(/\s+round\s+/);
+      const v = box.trim().split(/\s+/);
+      const t = len(v[0], h), r = len(v[1] || v[0], w), b = len(v[2] || v[0], h), l = len(v[3] || v[1] || v[0], w);
+      const rx = round ? len(round.trim().split(/\s+/)[0], w) : 0;
+      return ['rect', { x: l, y: t, width: Math.max(0, w - l - r), height: Math.max(0, h - t - b), rx }];
+    }
+    const pts = args.replace(/^\s*(nonzero|evenodd)\s*,/, '').split(',').map((pair) => { const [x, y] = pair.trim().split(/\s+/); return len(x, w) + ',' + len(y, h); });
+    return ['polygon', { points: pts.join(' ') }];
+  }
   // a wrapper with nothing of its own to see (no fill, no border) is the shapes of the icons and pictures inside it
-  function bare(el) {
-    const cs = getComputedStyle(el);
-    return !(el instanceof SVGElement) && cs.backgroundImage === 'none' && /rgba\(.*,\s*0\)|transparent/.test(cs.backgroundColor)
+  function bare(el, cs) {
+    return !isSvg(el) && cs.backgroundImage === 'none' && /rgba\(.*,\s*0\)|transparent/.test(cs.backgroundColor)
       && !parseFloat(cs.borderTopWidth) && !parseFloat(cs.borderBottomWidth) && cs.boxShadow === 'none';
   }
   function pieces(el) {
-    if (el instanceof SVGGraphicsElement && !(el instanceof SVGSVGElement) && el.ownerSVGElement) return [{ el, node: svgShape(el), kind: 'svg' }];
-    if (el instanceof SVGSVGElement) return [{ el, node: svgRoot(el), kind: 'frame' }];
-    if (el instanceof HTMLImageElement && el.currentSrc && !parseFloat(getComputedStyle(el).borderTopLeftRadius)) return [{ el, node: picture(el), kind: 'frame' }];
-    if (bare(el)) {
-      const inner = [...el.querySelectorAll('svg, img')].filter((n) => !n.parentElement.closest('svg') && visibleRect(n));
+    if (isSvg(el) && el.localName !== 'svg' && el.ownerSVGElement) return [{ el, node: svgShape(el), kind: 'svg' }];
+    if (isSvg(el) && el.localName === 'svg') return [{ el, node: svgRoot(el), kind: 'frame' }];
+    const cs = css(el), radius = parseFloat(cs.borderTopLeftRadius);
+    const clip = cs.clipPath && cs.clipPath !== 'none' && /^(circle|ellipse|inset|polygon)\(/.test(cs.clipPath) ? cs.clipPath : '';
+    if (clip) return [{ el, node: document.createElementNS(ns, 'g'), kind: 'clip', clip }];
+    if (el.localName === 'img' && el.currentSrc && !radius) return [{ el, node: image(el.currentSrc, FIT[cs.objectFit] || 'none'), kind: 'frame' }];
+    if (el.localName === 'canvas' && !radius) {
+      const g = document.createElementNS(ns, 'g'), box = document.createElementNS(ns, 'rect');
+      box.setAttribute('fill', 'black');
+      g.append(image('', 'none'), box);
+      return [{ el, node: g, kind: 'canvas', read: canvasShape(el), next: 0, url: null }];
+    }
+    const bgAspect = !radius && backgroundAspect(cs);
+    if (bgAspect && /rgba\(.*,\s*0\)|transparent/.test(cs.backgroundColor) && !parseFloat(cs.borderTopWidth)) {
+      const url = /^url\(["']?(.*?)["']?\)$/.exec(cs.backgroundImage);
+      if (url) return [{ el, node: image(new URL(url[1], el.ownerDocument.baseURI).href, bgAspect), kind: 'frame' }];
+    }
+    if (bare(el, cs)) {
+      const inner = [...el.querySelectorAll('svg, img, canvas')].filter((n) => !(n.parentElement && n.parentElement.closest('svg')) && visibleRect(n));
       if (inner.length) return inner.flatMap(pieces);
     }
     const n = document.createElementNS(ns, 'rect');
@@ -326,6 +446,7 @@ a { color: inherit; text-decoration: none; }
   function makeShape(el, glow) {
     const parts = pieces(el);
     for (const p of parts) {
+      p.node.setAttribute('data-kind', p.kind);
       p.nodes = [p.node];
       holes.append(p.node);
       if (glow) { const c = p.node.cloneNode(true); halos.append(c); p.nodes.push(c); }
@@ -335,12 +456,36 @@ a { color: inherit; text-decoration: none; }
       update() {
         for (const p of parts) {
           if (p.kind === 'svg') {
-            const m = p.el.getScreenCTM();
-            if (m) for (const n of p.nodes) n.setAttribute('transform', `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`);
+            const m = p.el.getScreenCTM(), o = offsetOf(p.el);
+            if (m) for (const n of p.nodes) n.setAttribute('transform', `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e + o.x} ${m.f + o.y})`);
             continue;
           }
-          const g = p.el.getBoundingClientRect();
-          const rx = p.kind === 'box' ? Math.min(parseFloat(getComputedStyle(p.el).borderTopLeftRadius) || 0, g.width / 2, g.height / 2) : 0;
+          const g = rectOf(p.el);
+          if (p.kind === 'clip') {
+            const key = g.width + 'x' + g.height + p.clip;
+            if (p.key !== key) {
+              p.key = key;
+              const sh = clipShape(p.clip, g.width, g.height);
+              for (const n of p.nodes) {
+                n.textContent = '';
+                if (sh) { const s = document.createElementNS(ns, sh[0]); for (const [k, v] of Object.entries(sh[1])) s.setAttribute(k, v); s.setAttribute('fill', 'black'); n.append(s); }
+              }
+            }
+            for (const n of p.nodes) n.setAttribute('transform', `translate(${g.left} ${g.top})`);
+            continue;
+          }
+          if (p.kind === 'canvas') {
+            if (performance.now() >= p.next) { p.next = performance.now() + 500; p.url = p.read(); }   // a moving canvas changes shape: read it twice a second
+            for (const n of p.nodes) {
+              const [img, box] = n.children;
+              for (const c of [img, box]) { c.setAttribute('x', g.left); c.setAttribute('y', g.top); c.setAttribute('width', g.width); c.setAttribute('height', g.height); }
+              if (p.url && img.getAttribute('href') !== p.url) img.setAttribute('href', p.url);
+              img.style.display = p.url ? '' : 'none';
+              box.style.display = p.url ? 'none' : '';
+            }
+            continue;
+          }
+          const rx = p.kind === 'box' ? Math.min(parseFloat(css(p.el).borderTopLeftRadius) || 0, g.width / 2, g.height / 2) : 0;
           for (const n of p.nodes) {
             n.setAttribute('x', g.left); n.setAttribute('y', g.top); n.setAttribute('width', g.width); n.setAttribute('height', g.height);
             if (p.kind === 'box') n.setAttribute('rx', rx);
@@ -350,7 +495,35 @@ a { color: inherit; text-decoration: none; }
     };
   }
 
+  // ---------- areas drawn by code ----------
+  // A part with no element of its own (an object in a WebGL or 3D scene, a region of a canvas) is given to Flowers as
+  // a function that returns where it is on screen: Flowers.area('chair', () => ({ x, y, width, height, radius })).
+  const areas = new Map();   // credit id -> [where()]
+  let proxies = [];
+  function proxyFor(where) {
+    const el = document.createElement('div');
+    el.setAttribute('data-flowers-area', '');
+    el.setAttribute('aria-hidden', 'true');
+    Object.assign(el.style, { position: 'fixed', pointerEvents: 'none', margin: '0', padding: '0', border: '0', background: 'none', zIndex: '-1' });
+    el.where = where;
+    document.body.append(el);
+    proxies.push(el);
+    moveProxy(el);
+    return el;
+  }
+  function moveProxy(el) {
+    let r = null;
+    try { r = el.where(); } catch (e) { /* the scene isn't ready */ }
+    if (r && r.getBoundingClientRect) r = rectOf(r);
+    const ok = r && r.width > 0 && r.height > 0;
+    Object.assign(el.style, ok
+      ? { display: '', left: (r.x ?? r.left) + 'px', top: (r.y ?? r.top) + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: (r.radius || 0) + 'px' }
+      : { display: 'none' });
+  }
+  function dropProxies() { proxies.forEach((p) => p.remove()); proxies = []; }
+
   function mark() {
+    dropProxies();
     holes.textContent = '';
     halos.textContent = '';
     for (const d of defs.querySelectorAll('[id^="flowers-d"]')) d.remove();
@@ -358,7 +531,8 @@ a { color: inherit; text-decoration: none; }
     layer.textContent = '';
     marks = [];
     for (const credit of credits) {
-      for (const el of targetsOf(credit)) {
+      const els = targetsOf(credit).concat((areas.get(credit.id) || []).map(proxyFor));
+      for (const el of els) {
         const box = h('div', { class: 'box', part: 'outline', tabindex: '0', role: 'img', 'aria-label': 'Made with ' + credit.name + (credit.author ? ' by ' + credit.author : '') });
         const about = credit.about || credit.note, link = credit.url;
         const title = link ? h('a', { class: 'title', href: link, target: '_blank', rel: 'noopener' }, h('span', {}, credit.name)) : h('span', { class: 'title' }, h('span', {}, credit.name));
@@ -366,8 +540,8 @@ a { color: inherit; text-decoration: none; }
         const tag = h('div', { class: 'tag', part: 'label' }, title, by,
           about ? h('div', { class: 'more' }, h('div', {}, h('span', { class: 'about' }, about))) : null);
         const group = h('div', { class: 'mark' }, box, tag);
-        tag.addEventListener('pointerenter', () => hover(mark));
-        tag.addEventListener('pointerleave', () => hover(null));
+        tag.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') hover(mark); });
+        tag.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') hover(null); });
         layer.append(group);
         const mark = { credit, el, box, tag, title, by, group, shape: makeShape(el, true), r: null };
         marks.push(mark);
@@ -376,11 +550,16 @@ a { color: inherit; text-decoration: none; }
     keepLit = keepLit.filter((el) => el.isConnected);
     for (const el of keepLit.concat(triggers.filter((t) => t.getRootNode() === document))) marks.push({ credit: null, el, shape: makeShape(el, false) });
 
-    // credits with nothing to point at on this page (a font, a library) go in one line at the bottom
+    // credits with nothing to point at on this page go in one line at the bottom:
+    // the tools the site was made with (a plugin, a generator, a skill), then anything else (a font, a library)
     const rest = credits.filter((c) => !marks.some((m) => m.credit === c && visibleRect(m.el)));
     if (rest.length) {
-      const also = h('div', { class: 'also', part: 'also' }, 'Also: ');
-      rest.forEach((c, i) => { if (i) also.append(', '); also.append(words(c, '')); });
+      const tools = rest.filter((c) => c.role === 'tool'), other = rest.filter((c) => c.role !== 'tool');
+      const also = h('div', { class: 'also', part: 'also' });
+      const list = (label, group) => { also.append(label); group.forEach((c, i) => { if (i) also.append(', '); also.append(words(c, '')); }); };
+      if (tools.length) list('Made with ', tools);
+      if (tools.length && other.length) also.append(' · ');
+      if (other.length) list(tools.length ? 'Also ' : 'Also: ', other);
       layer.append(also);
     }
   }
@@ -396,6 +575,7 @@ a { color: inherit; text-decoration: none; }
 
   // something on top (a pop-up, a menu) hides the part, so it isn't lit through it
   function covered(el, r, vw, vh) {
+    if (el.ownerDocument !== document || el.hasAttribute('data-flowers-area')) return false;
     const x = Math.min(Math.max(r.left + r.width / 2, 1), vw - 1), y = Math.min(Math.max(r.top + r.height / 2, 1), vh - 1);
     const hit = document.elementsFromPoint(x, y).find((e) => e.localName !== 'flowers-layer');
     if (!hit || hit === el || el.contains(hit) || hit.contains(el)) return false;
@@ -405,6 +585,7 @@ a { color: inherit; text-decoration: none; }
 
   function place() {
     const vw = innerWidth, vh = innerHeight;
+    proxies.forEach(moveProxy);
     for (const m of marks) {
       const r = visibleRect(m.el);
       const on = r && r.bottom > 0 && r.right > 0 && r.top < vh && r.left < vw && (!m.credit || !covered(m.el, r, vw, vh));
@@ -440,20 +621,28 @@ a { color: inherit; text-decoration: none; }
   let hideTimer = 0;
 
   // ---------- replaying a credited motion ----------
-  // "replay": "hover" plays the part's hover effect by itself, slowly, on a loop: it sends the mouse events
-  // a script listens for and sets data-flowers-hover, which the site's CSS can match next to :hover.
-  // "replay": "animation" restarts the part's own CSS or Web animations on a loop.
+  // While Credits is on, a credited motion plays by itself, slowly, on a loop:
+  //   "hover"         sets data-flowers-hover on the part; the site's CSS matches it next to :hover. Nothing else happens,
+  //                   so no menu opens, no video starts and no analytics fire.
+  //   "hover-events"  also sends the mouse events a script listens for. Only for effects driven by a script, and only
+  //                   when those events do nothing but the effect. Flowers.replaying is true while they're sent.
+  //   "animation"     restarts the part's own CSS or Web animations.
   const replays = new Map();   // element -> { timer, on }
   const HOLD = 1600, REST = 1800;
+  let replaying = false;
   function pulse(el, kind, on) {
-    if (kind === 'hover') {
-      el.toggleAttribute('data-flowers-hover', on);
-      const r = el.getBoundingClientRect(), at = { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
-      for (const type of on ? ['pointerover', 'pointerenter', 'mouseover', 'mouseenter', 'pointermove', 'mousemove'] : ['pointerout', 'pointerleave', 'mouseout', 'mouseleave']) {
-        const E = type.startsWith('pointer') && window.PointerEvent ? PointerEvent : MouseEvent;
-        el.dispatchEvent(new E(type, { ...at, bubbles: !/enter|leave/.test(type), pointerType: 'mouse' }));
-      }
-    } else if (on) {
+    if (kind === 'hover' || kind === 'hover-events') el.toggleAttribute('data-flowers-hover', on);
+    if (kind === 'hover-events') {
+      const win = el.ownerDocument.defaultView, r = el.getBoundingClientRect(), at = { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
+      replaying = true;
+      try {
+        for (const type of on ? ['pointerover', 'pointerenter', 'mouseover', 'mouseenter', 'pointermove', 'mousemove'] : ['pointerout', 'pointerleave', 'mouseout', 'mouseleave']) {
+          const E = type.startsWith('pointer') && win.PointerEvent ? win.PointerEvent : win.MouseEvent;
+          el.dispatchEvent(new E(type, { ...at, bubbles: !/enter|leave/.test(type), pointerType: 'mouse' }));
+        }
+      } finally { replaying = false; }
+    }
+    if (kind === 'animation' && on) {
       for (const a of el.getAnimations({ subtree: true })) { a.currentTime = 0; a.play(); }
     }
   }
@@ -504,6 +693,7 @@ a { color: inherit; text-decoration: none; }
       holes.textContent = '';
       halos.textContent = '';
       marks = [];
+      dropProxies();
     }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 420);
     pressed(false);
     live.textContent = 'Flowers off.';
@@ -514,16 +704,29 @@ a { color: inherit; text-decoration: none; }
 
   addEventListener('keydown', (e) => { if (e.key === 'Escape' && active) close(); });
 
+  // after the page changes (a new route, parts added or removed), open Credits again over the new parts
+  function refresh() { if (active) { stopReplays(); mark(); place(); startReplays(); } }
+
   window.Flowers = {
-    open, close, toggle,
+    version: VERSION,
+    open, close, toggle, refresh,
+    // a part drawn by code: where() returns { x, y, width, height, radius } on screen (or an element), or null when hidden
+    area(id, where) {
+      if (typeof where !== 'function') throw new TypeError('Flowers.area(id, where): where must be a function');
+      areas.set(String(id), (areas.get(String(id)) || []).concat(where));
+      refresh();
+      return () => { areas.set(String(id), (areas.get(String(id)) || []).filter((f) => f !== where)); refresh(); };
+    },
     get credits() { return credits.slice(); },
     get isOpen() { return active; },
+    get replaying() { return replaying; },
   };
 
   async function start() {
     try { credits = normalize(await load()); } catch (err) { console.warn(err.message || err); return; }
     if (!credits.length) return;
     build();
+    document.dispatchEvent(new CustomEvent('flowers:ready', { detail: { version: VERSION, credits: credits.length } }));
     if (location.hash === '#flowers') open();
   }
 

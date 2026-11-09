@@ -19,6 +19,8 @@
   ul { list-style: none; margin: 0; padding: 0; }
   li { padding: 14px 0; border-top: 1px solid var(--line); }
   li a { color: inherit; font-weight: 700; }
+  .add { margin-top: 32px; font-size: 14px; }
+  .add a { color: inherit; }
   li span { display: block; color: var(--muted); font-size: 14px; }
 </style>
 </head>
@@ -29,19 +31,10 @@
   <form id="f"><input id="q" type="search" placeholder="@handle, name or link" aria-label="Your name, handle or link" autofocus><button>Search</button></form>
   <div class="status" id="status" aria-live="polite"></div>
   <ul id="results"></ul>
+  <p class="add">Use Flowers on your site? <a href="https://github.com/gentlycarved-arch/flowers/issues/new?template=add-site.yml">Add it to the list</a> so makers can find it.</p>
 </main>
-<script>
-  // the same matching as tools/lib.mjs
-  const bare = (u) => { try { const x = new URL(/^https?:\/\//i.test(u) ? u : 'https://' + u); return (x.hostname.replace(/^www\./, '') + x.pathname.replace(/\/+$/, '')).toLowerCase(); } catch { return String(u).toLowerCase(); } };
-  function matches(c, q) {
-    q = q.trim(); if (!q) return false;
-    if (/^https?:\/\//i.test(q) || /^[\w-]+(\.[\w-]+)+\//.test(q) || /^[\w-]+\.[a-z]{2,}$/i.test(q)) {
-      const b = bare(q);
-      return [c.url, c.authorUrl].filter(Boolean).some((u) => { const x = bare(u); return x === b || x.startsWith(b + '/'); });
-    }
-    const w = q.replace(/^@/, '').toLowerCase();
-    return [c.author, c.name, c.authorUrl].filter(Boolean).some((s) => s.toLowerCase().includes(w));
-  }
+<script type="module">
+  import { matches } from './match.js';
   const $ = (id) => document.getElementById(id);
   const index = fetch('index.json').then((r) => r.json()).catch(() => ({ sites: [] }));
   index.then((d) => { $('status').textContent = d.sites.length ? d.sites.length + ' sites listed' + (d.generated ? ', updated ' + new Date(d.generated).toLocaleDateString() : '') + '.' : 'No sites are listed yet.'; });
