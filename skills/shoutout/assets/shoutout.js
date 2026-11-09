@@ -1,8 +1,8 @@
-/*! Shoutout 2.2.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
+/*! Shoutout 2.3.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
 (() => {
   'use strict';
   if (window.Shoutout) return;
-  const VERSION = '2.2.0';
+  const VERSION = '2.3.0';
 
   const script = document.currentScript;
   const opt = (name, fallback) => (script && script.getAttribute('data-' + name)) || fallback;
@@ -93,20 +93,33 @@
   const CSS = `
 :host { all: initial; }
 :host {
-  --_accent: var(--shoutout-accent, #ffffff);
+  --_font: var(--shoutout-font, "Helvetica Neue", Helvetica, Arial, sans-serif);
+  --_ease: cubic-bezier(.2, .8, .2, 1);
+  --_r: var(--shoutout-radius, 999px);
+  /* light mode: the page fades to white, the credited parts keep a soft dark glow, and the pop-ups are dark */
+  --_fade-color: var(--shoutout-fade-color, #ffffff);
+  --_fade: var(--shoutout-fade, 0.86);
+  --_accent: var(--shoutout-accent, #000000);
+  --_glow: var(--shoutout-glow, 0.32);
   --_bg: var(--shoutout-bg, #ffffff);
   --_fg: var(--shoutout-fg, #111111);
-  --_muted: var(--shoutout-muted, #6b6b6b);
-  --_font: var(--shoutout-font, "Helvetica Neue", Helvetica, Arial, sans-serif);
+  --_pop-bg: var(--shoutout-popup-bg, #161616);
+  --_pop-fg: var(--shoutout-popup-fg, #f4f4f4);
+  --_pop-muted: var(--shoutout-popup-muted, #9a9a9a);
+}
+/* dark mode: the page fades to near-black, the credited parts glow white, and the pop-ups are white */
+:host([mode="dark"]) {
+  --_fade-color: var(--shoutout-fade-color, #0a0a0a);
+  --_fade: var(--shoutout-fade, 0.82);
+  --_accent: var(--shoutout-accent, #ffffff);
+  --_glow: var(--shoutout-glow, 0.8);
+  --_bg: var(--shoutout-bg, #1c1c1c);
+  --_fg: var(--shoutout-fg, #f2f2f2);
   --_pop-bg: var(--shoutout-popup-bg, #ffffff);
   --_pop-fg: var(--shoutout-popup-fg, #111111);
   --_pop-muted: var(--shoutout-popup-muted, #6b6b6b);
-  --_ease: cubic-bezier(.2, .8, .2, 1);
-  --_r: var(--shoutout-radius, 999px);
 }
-/* the button sits on the site, so it follows the site's light or dark; the pop-ups sit on the dark fade, so they stay white */
-@media (prefers-color-scheme: dark) { :host(:not([theme="light"])) .btn { --_bg: var(--shoutout-bg, #1c1c1c); --_fg: var(--shoutout-fg, #f2f2f2); } }
-:host([theme="dark"]) .btn { --_bg: var(--shoutout-bg, #1c1c1c); --_fg: var(--shoutout-fg, #f2f2f2); }
+.fill { fill: var(--_fade-color); fill-opacity: var(--_fade); }
 * { box-sizing: border-box; }
 .root { font-family: var(--_font); font-size: 13px; line-height: 1.3; color: var(--_fg); -webkit-font-smoothing: antialiased; }
 a { color: inherit; text-decoration: none; }
@@ -124,7 +137,7 @@ a { color: inherit; text-decoration: none; }
 .fade.on { opacity: 1; }
 .box { position: fixed; z-index: 2147483000; pointer-events: none; outline: none; border-radius: 2px; }
 .box:focus-visible { outline: 1px solid var(--_accent); outline-offset: 3px; }
-.halo-color { flood-color: var(--_accent); flood-opacity: .8; }
+.halo-color { flood-color: var(--_accent); flood-opacity: var(--_glow); }
 .halos { pointer-events: none; }
 .fade.on .halos { animation: in .8s ease .15s both; }
 /* the pop-over: a white square with the title; on hover it grows, smoothly, to hold the description */
@@ -177,10 +190,51 @@ a { color: inherit; text-decoration: none; }
   };
   const ext = (href, cls, ...kids) => (href ? h('a', { class: cls, href, target: '_blank', rel: 'noopener' }, ...kids) : h('span', { class: cls }, ...kids));
 
+  // ---------- light and dark ----------
+  // Shoutout matches the page as it looks: data-theme on the script tag first; then the page's own background
+  // (light or dark), which already follows the site's switch and the visitor's setting; then the site's switch
+  // (data-theme, a dark/light class, CSS color-scheme) when the background is see-through; then the system setting.
+  function background() {
+    for (const el of [document.body, document.documentElement]) {
+      if (!el) continue;
+      const m = /rgba?\(([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+%?))?/.exec(getComputedStyle(el).backgroundColor);
+      if (!m) continue;
+      const a = m[4] === undefined ? 1 : m[4].endsWith('%') ? parseFloat(m[4]) / 100 : parseFloat(m[4]);
+      if (a < 0.5) continue;
+      const lum = (0.2126 * m[1] + 0.7152 * m[2] + 0.0722 * m[3]) / 255;
+      return lum < 0.45 ? 'dark' : 'light';
+    }
+    return null;
+  }
+  function mode() {
+    const forced = opt('theme', 'auto');
+    if (forced === 'light' || forced === 'dark') return forced;
+    const bg = background();
+    if (bg) return bg;
+    for (const el of [document.documentElement, document.body]) {
+      if (!el) continue;
+      const t = ['data-theme', 'data-color-scheme', 'data-mode', 'data-bs-theme'].map((a) => el.getAttribute(a) || '').join(' ').toLowerCase();
+      if (/\bdark\b/.test(t)) return 'dark';
+      if (/\blight\b/.test(t)) return 'light';
+      for (const c of el.classList) {
+        if (/^(dark|dark-mode|theme-dark|is-dark)$/i.test(c)) return 'dark';
+        if (/^(light|light-mode|theme-light|is-light)$/i.test(c)) return 'light';
+      }
+    }
+    const scheme = getComputedStyle(document.documentElement).colorScheme;
+    if (scheme === 'dark' || scheme === 'only dark') return 'dark';
+    if (scheme === 'light' || scheme === 'only light') return 'light';
+    return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function setMode() {
+    const m = mode();
+    for (const host of document.querySelectorAll('shoutout-layer, shoutout-button')) if (host.getAttribute('mode') !== m) host.setAttribute('mode', m);
+  }
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { setMode(); setTimeout(setMode, 400); });
+
   function shadowHost(name) {
     const host = document.createElement(name);
-    const theme = opt('theme', 'auto');
-    if (theme !== 'auto') host.setAttribute('theme', theme);
+    host.setAttribute('mode', mode());
     if (opt('accent')) host.style.setProperty('--shoutout-accent', opt('accent'));
     const shadow = host.attachShadow({ mode: 'open' });
     shadow.append(h('style', {}, CSS));
@@ -277,6 +331,8 @@ a { color: inherit; text-decoration: none; }
       + '<feMerge result="both"><feMergeNode in="far"/><feMergeNode in="near"/></feMerge>'
       + '<feFlood class="halo-color" result="color"/><feComposite in="color" in2="both" operator="in" result="lit"/>'
       + '<feComposite in="lit" in2="SourceAlpha" operator="out"/></filter>'
+      // small line drawings (icons) are opened up a little, so their thin lines and the space around them show through
+      + '<filter id="shoutout-grow" x="-20%" y="-20%" width="140%" height="140%"><feMorphology operator="dilate" radius="2.5"/></filter>'
       + '<mask id="shoutout-holes" maskUnits="userSpaceOnUse"><rect x="0" y="0" width="100%" height="100%" fill="white"/><g class="holes" filter="url(#shoutout-black)"></g></mask>'
       + '</defs><rect class="fill" x="0" y="0" width="100%" height="100%" mask="url(#shoutout-holes)"/><g class="halos" filter="url(#shoutout-halo)"></g>';
     // hovering (or tapping) a credited part shows who made it; clicking anywhere else brings the page back
@@ -446,7 +502,11 @@ a { color: inherit; text-decoration: none; }
   }
   function pieces(el) {
     if (isSvg(el) && el.localName !== 'svg' && el.ownerSVGElement) return [{ el, node: svgShape(el), kind: 'svg' }];
-    if (isSvg(el) && el.localName === 'svg') return [{ el, node: svgRoot(el), kind: 'frame' }];
+    if (isSvg(el) && el.localName === 'svg') {
+      const node = svgRoot(el), r = el.getBoundingClientRect();
+      if (r.width <= 96 && r.height <= 96) node.setAttribute('filter', 'url(#shoutout-grow)');
+      return [{ el, node, kind: 'frame' }];
+    }
     const cs = css(el), radius = parseFloat(cs.borderTopLeftRadius);
     const clip = cs.clipPath && cs.clipPath !== 'none' && /^(circle|ellipse|inset|polygon)\(/.test(cs.clipPath) ? cs.clipPath : '';
     if (clip) return [{ el, node: document.createElementNS(ns, 'g'), kind: 'clip', clip }];
@@ -733,8 +793,7 @@ a { color: inherit; text-decoration: none; }
     if (active || !layerShadow) return;
     active = true;
     clearTimeout(hideTimer);
-    fadeFill.style.fill = 'var(--shoutout-fade-color, #0a0a0a)';
-    fadeFill.style.fillOpacity = 'var(--shoutout-fade, 0.82)';
+    setMode();
     mark();
     place();
     fade.style.display = '';
@@ -808,6 +867,7 @@ a { color: inherit; text-decoration: none; }
       try { credits = normalize(JSON.parse(inlineText)); } catch (e) { console.warn('Shoutout: the credits in the page are not valid JSON'); }
     }
     syncButtons();
+    setMode();
     if (active) {
       const now = credits.flatMap((c) => targetsOf(c));
       const had = marks.filter((m) => m.credit && !m.el.hasAttribute('data-shoutout-area')).map((m) => m.el);
@@ -823,6 +883,12 @@ a { color: inherit; text-decoration: none; }
         return soon();
       }
     }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+    // the site's own light/dark switch
+    const themeAttrs = { attributes: true, attributeFilter: ['class', 'style', 'data-theme', 'data-color-scheme', 'data-mode', 'data-bs-theme'] };
+    const themeWatch = new MutationObserver(() => { setMode(); setTimeout(setMode, 400); });
+    themeWatch.observe(document.documentElement, themeAttrs);
+    if (document.body) themeWatch.observe(document.body, themeAttrs);
+    for (const type of ['astro:after-swap', 'turbo:load']) document.addEventListener(type, () => { if (document.body) themeWatch.observe(document.body, themeAttrs); setMode(); });
     for (const type of ['popstate', 'pageshow']) addEventListener(type, soon);
     for (const type of ['astro:after-swap', 'astro:page-load', 'turbo:load', 'turbo:render', 'swup:page:view']) document.addEventListener(type, soon);
     for (const name of ['pushState', 'replaceState']) {

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shoutout examples</title>
+<link rel="preload" href="fonts/HedvigLettersSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  @font-face { font-family: "Hedvig Letters Sans"; src: url("fonts/HedvigLettersSans-Regular.woff2") format("woff2"); font-display: swap; }
+  :root { --fg: #333; --muted: #8a8a8a; --line: #ececec; --soft: #f6f6f6; --accent: #2f5d50; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--fg); font: 16px/1.6 "Hedvig Letters Sans", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  main { width: min(56rem, 100% - 32px); margin: 0 auto; padding: 56px 0 64px; }
+  h1 { font-size: 1.25em; font-weight: 400; margin: 0; }
+  .lede { color: var(--muted); margin: 2px 0 40px; max-width: 34rem; }
+  h2 { font-size: 1em; font-weight: 400; margin: 0 0 4px; }
+  .what { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+  section { margin: 0 0 56px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; }
+
+  /* 1. a UI skill: pricing cards */
+  .card { border: 1px solid var(--line); border-radius: 14px; padding: 20px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.03); }
+  .card .tier { color: var(--muted); font-size: 14px; }
+  .card .price { font-size: 28px; margin: 4px 0 12px; }
+  .card ul { margin: 0 0 16px; padding: 0 0 0 18px; color: var(--muted); font-size: 14px; }
+  .card .cta { display: block; text-align: center; padding: 10px; border-radius: 999px; background: var(--fg); color: #fff; text-decoration: none; font-size: 14px; }
+
+  /* 2. a motion skill: a hover that lifts and reveals */
+  .tile { position: relative; overflow: hidden; border-radius: 14px; height: 160px; background: var(--soft); display: flex; align-items: flex-end; padding: 16px; cursor: pointer;
+    transition: transform .5s cubic-bezier(.2,.8,.2,1), box-shadow .5s; }
+  .tile::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 30%, rgba(47,93,80,.18) 50%, transparent 70%); transform: translateX(-100%); transition: transform .9s cubic-bezier(.2,.8,.2,1); }
+  .tile:hover, .tile[data-shoutout-hover] { transform: translateY(-6px); box-shadow: 0 18px 30px -18px rgba(0,0,0,.35); }
+  .tile:hover::after, .tile[data-shoutout-hover]::after { transform: translateX(100%); }
+
+  /* 3. an animation skill: words that rise in */
+  .rise span { display: inline-block; animation: rise .9s cubic-bezier(.2,.8,.2,1) both; }
+  .rise span:nth-child(2) { animation-delay: .08s; } .rise span:nth-child(3) { animation-delay: .16s; } .rise span:nth-child(4) { animation-delay: .24s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+  .rise { font-size: 32px; line-height: 1.2; margin: 0; width: fit-content; }
+
+  /* 5. an icon set */
+  .icons { display: flex; gap: 18px; width: fit-content; }
+  .icons svg { width: 28px; height: 28px; }
+
+  /* 6. a picture cut into a circle */
+  .avatar { width: 140px; height: 140px; clip-path: circle(50% at 50% 50%); background: linear-gradient(135deg, #c9b79c, #6f8f7f); }
+
+  /* 7. swatches from a palette generator (a tool) */
+  .swatches { display: flex; gap: 8px; width: fit-content; }
+  .swatches i { width: 44px; height: 44px; border-radius: 8px; }
+
+  canvas { display: block; width: 220px; height: 160px; }
+  footer { width: min(56rem, 100% - 32px); margin: 0 auto; padding: 24px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+</style>
+<script type="application/credits+json">
+{ "credit": "1.0", "site": "Shoutout examples", "credits": [
+  { "id": "ui-skill", "name": "Pricing Cards skill", "author": "Example Studio", "kind": "ui", "role": "part",
+    "about": "Makes UI skills for agents: cards, forms, tables.", "note": "Every pricing card on this page was built with it.", "url": "https://example.com/pricing-cards-skill" },
+  { "id": "motion-skill", "name": "Lift & Sheen hover", "author": "Motion Maker", "kind": "motion", "replay": "hover",
+    "about": "Shares small motion skills for interfaces.", "note": "The hover on the project tiles.", "url": "https://example.com/lift-sheen" },
+  { "id": "rise", "name": "Rise In text animation", "author": "Type in Motion", "kind": "animation", "replay": "animation",
+    "note": "The words that rise in under Animation.", "url": "https://example.com/rise-in" },
+  { "id": "shader", "name": "Soft Orb shader", "author": "Shader Friend", "kind": "shader",
+    "about": "Free shaders, every week.", "note": "The glowing orb, drawn on a canvas.", "url": "https://example.com/soft-orb" },
+  { "id": "icons", "name": "Thin Line icons", "author": "Icon Person", "kind": "icon", "license": "CC BY 4.0",
+    "url": "https://example.com/thin-line", "selectors": [".icons"] },
+  { "id": "avatar", "name": "Gradient portraits", "author": "Pic Maker", "kind": "image", "url": "https://example.com/portraits" },
+  { "id": "palette", "name": "Palette Generator plugin", "author": "Color Tools", "kind": "plugin", "role": "tool",
+    "note": "Made the colours on this page.", "url": "https://example.com/palette-plugin" },
+  { "id": "layout-skill", "name": "Grid Layout skill", "author": "Layout Lab", "kind": "skill", "role": "tool",
+    "note": "Laid out this page.", "url": "https://example.com/grid-skill" },
+  { "id": "font", "name": "Hedvig Letters Sans", "author": "Kanon Foundry", "kind": "font", "license": "SIL Open Font License",
+    "url": "https://github.com/KanonFoundry/HedvigLetters" }
+] }
+</script>
+</head>
+<body>
+<main>
+  <h1>Shoutout examples</h1>
+  <p class="lede">One of each kind of credit. Press Shoutout at the bottom, or open “All shoutouts” at the top and hover each name. The makers here are made up, except the font.</p>
+
+  <section>
+    <h2>A UI skill</h2>
+    <p class="what">Components an agent built with someone’s skill. Every card it made lights up.</p>
+    <div class="grid">
+      <div class="card" data-credit="ui-skill"><div class="tier">Starter</div><div class="price">$0</div><ul><li>One site</li><li>Community help</li></ul><a class="cta" href="#">Start</a></div>
+      <div class="card" data-credit="ui-skill"><div class="tier">Studio</div><div class="price">$12</div><ul><li>Five sites</li><li>Email help</li></ul><a class="cta" href="#">Choose</a></div>
+      <div class="card" data-credit="ui-skill"><div class="tier">Team</div><div class="price">$40</div><ul><li>Every site</li><li>A call a month</li></ul><a class="cta" href="#">Talk to us</a></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>A motion skill</h2>
+    <p class="what">A hover from someone’s motion skill. With Shoutout on, it plays by itself, slowly.</p>
+    <div class="grid">
+      <div class="tile" data-credit="motion-skill">Project one</div>
+      <div class="tile" data-credit="motion-skill">Project two</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>An animation</h2>
+    <p class="what">An entrance animation. With Shoutout on, it plays again now and then.</p>
+    <p class="rise" data-credit="rise"><span>Made</span> <span>with</span> <span>someone’s</span> <span>care.</span></p>
+  </section>
+
+  <section class="grid">
+    <div>
+      <h2>A shader</h2>
+      <p class="what">Drawn on a canvas. The glow follows its round edge.</p>
+      <canvas id="orb" width="440" height="320" data-credit="shader"></canvas>
+    </div>
+    <div>
+      <h2>An icon set</h2>
+      <p class="what">Credited with a selector, so the markup didn’t change. The glow follows each line.</p>
+      <div class="icons" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 20V8l8-4 8 4v12"/><path d="M9 20v-6h6v6"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 21s-7-4.5-7-11a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 6.5-7 11-7 11z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      </div>
+    </div>
+    <div>
+      <h2>A picture in a shape</h2>
+      <p class="what">Cut into a circle with CSS. It glows as a circle.</p>
+      <div class="avatar" data-credit="avatar" role="img" aria-label="A gradient portrait"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>A tool you made things with</h2>
+    <p class="what">A plugin that made these colours. It lights them up, and is listed under “Made with”. A layout skill that made nothing you can point to is only listed.</p>
+    <div class="swatches" data-credit="palette"><i style="background:#2f5d50"></i><i style="background:#6f8f7f"></i><i style="background:#c9b79c"></i><i style="background:#e9e3d6"></i><i style="background:#333"></i></div>
+  </section>
+</main>
+<footer><a href="./" style="color:inherit">Shoutout</a>. The page’s typeface, Hedvig Letters Sans, is credited too: it’s used everywhere, so it’s listed under “Also”.</footer>
+
+<script>
+  // a stand-in for a credited shader: a soft orb on a see-through canvas
+  const c = document.getElementById('orb'), x = c.getContext('2d');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function draw(t) {
+    x.clearRect(0, 0, c.width, c.height);
+    const cx = 220 + Math.sin(t / 1400) * 30, cy = 160 + Math.cos(t / 1700) * 18;
+    const g = x.createRadialGradient(cx - 30, cy - 30, 10, cx, cy, 120);
+    g.addColorStop(0, '#f4e6c8'); g.addColorStop(.5, '#6f8f7f'); g.addColorStop(1, 'rgba(47,93,80,0)');
+    x.fillStyle = g; x.beginPath(); x.arc(cx, cy, 120, 0, Math.PI * 2); x.fill();
+    if (!still) requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+</script>
+<script src="shoutout.js" defer></script>
+</body>
+</html>

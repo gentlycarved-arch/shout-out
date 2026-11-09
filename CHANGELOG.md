@@ -2,6 +2,13 @@
 
 Shoutout follows [semantic versioning](https://semver.org): within a major version, a release never breaks a site that worked with an earlier one. The `credits.json` format has its own version; `"credit": "1.0"` files are read by every release.
 
+## 2.3.0
+
+- **Light and dark.** Shoutout matches the page as it looks. On a light page, the page fades to white, the credited parts keep a soft dark glow, and the pop-ups and list are dark. On a dark page, it fades to near-black with a white glow and white pop-ups, as before. It reads the page's own background, so it follows a site's light/dark switch and the visitor's setting, and changes when they do. `data-theme="light"` or `"dark"` on the script tag fixes it to one.
+- **Small icons are easier to see:** a line drawing up to about 96 px is opened up a little, so its thin lines and the space around them show through, not just the lines.
+- New `--shoutout-glow` property: how strong the glow is (0 to 1).
+- The Shoutout site has an examples page, with one of each kind of credit, and a new recording of it.
+
 ## 2.2.0
 
 - **The button says Shoutout,** not Credits, and the list says "All shoutouts". A site that wants other words still sets `data-label` on the script, or uses its own `<button data-shoutout-button>`.

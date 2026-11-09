@@ -124,7 +124,7 @@ A credit that's a motion (a hover effect, a transition, an animation) can play b
 
 **Recommended: at the bottom of the page.** By default `shoutout.js` puts a small Shoutout button centred inside the site's `<footer>`, or at the very end of the page if there's no footer.
 
-Pressing it fades the page to dark, except for the credited parts. Those glow in their own shape, each with a small white square just below it: the tool's `name` (linking to the original) and, under it, "by" the maker. Hovering one (tapping it on a phone, or tabbing to it) grows it, smoothly, to show the maker's bio, or the credit's `note` when there's no bio. At the top, an "All shoutouts" square drops down to every credit on the site: the parts on this page, then the tools the site was made with under "Made with", then anything else (a font, a library) under "Also". Hovering a name keeps only that credit's parts lit, with their pop-ups open, and clicking it scrolls to the part. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
+Pressing it fades the page (to white on a light page, to near-black on a dark one), except for the credited parts. Those glow in their own shape, each with a small white square just below it: the tool's `name` (linking to the original) and, under it, "by" the maker. Hovering one (tapping it on a phone, or tabbing to it) grows it, smoothly, to show the maker's bio, or the credit's `note` when there's no bio. At the top, an "All shoutouts" square drops down to every credit on the site: the parts on this page, then the tools the site was made with under "Made with", then anything else (a font, a library) under "Also". Hovering a name keeps only that credit's parts lit, with their pop-ups open, and clicking it scrolls to the part. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
 
 To choose the place yourself, mark it with `data-shoutout-button`:
 
@@ -141,20 +141,21 @@ Set as attributes on the `<script>` tag:
 |---|---|---|
 | `data-src` | where to find credits.json | see *Where it lives* |
 | `data-position` | `bottom` (in the footer), `bottom-right`, `bottom-left`, `top-right`, `top-left` | `bottom` |
-| `data-theme` | `auto`, `light`, `dark` | `auto` |
+| `data-theme` | `auto` (match the page: its background, then its own light/dark switch, then the visitor's setting), `light`, `dark` | `auto` |
 | `data-accent` | the glow colour | white |
 | `data-label` | the button's text | `Shoutout` |
 | `data-button` | `none` hides the button, for sites that open Shoutout from their own code | shown |
 
-To match a site, set these custom properties anywhere in its CSS (usually `:root`, and again for a dark theme):
+Shoutout matches light and dark pages by itself. To match a site more closely, set these custom properties in its CSS (usually on `:root`, and again inside the site's dark theme):
 
 | Property | What it sets | Default |
 |---|---|---|
-| `--shoutout-fade-color` | the colour the page fades to | near-black `#0a0a0a` |
-| `--shoutout-fade` | how far it fades, 0 to 1 | `0.82` |
-| `--shoutout-accent` | the glow | white |
-| `--shoutout-bg`, `--shoutout-fg` | the button and its text | white and black (dark in dark mode) |
-| `--shoutout-popup-bg`, `--shoutout-popup-fg`, `--shoutout-popup-muted` | the pop-ups, their text, and the maker line | white, black, grey |
+| `--shoutout-fade-color` | the colour the page fades to | white on a light page, near-black `#0a0a0a` on a dark one |
+| `--shoutout-fade` | how far it fades, 0 to 1 | `0.86` light, `0.82` dark |
+| `--shoutout-accent` | the glow's colour | black on a light page, white on a dark one |
+| `--shoutout-glow` | how strong the glow is, 0 to 1 | `0.32` light, `0.8` dark |
+| `--shoutout-bg`, `--shoutout-fg` | the button and its text | white and black (dark on a dark page) |
+| `--shoutout-popup-bg`, `--shoutout-popup-fg`, `--shoutout-popup-muted` | the pop-ups and the list, their text, and the maker line | dark with light text on a light page, white with dark text on a dark one |
 | `--shoutout-font`, `--shoutout-radius` | the type, and the rounding of the button | Helvetica, 999px |
 
 From the page's own scripts:
@@ -178,7 +179,7 @@ Shoutout follows [semantic versioning](https://semver.org). `Shoutout.version` s
 
 ```html
 <!-- one version, never changes -->
-<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@v2.2.0/shoutout.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@v2.3.0/shoutout.js" defer></script>
 <!-- the latest 2.x: fixes arrive by themselves, nothing breaks -->
 <script src="https://cdn.jsdelivr.net/gh/gentlycarved-arch/shoutout@2/shoutout.js" defer></script>
 ```

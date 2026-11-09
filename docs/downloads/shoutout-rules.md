@@ -1,4 +1,4 @@
-<!-- Shoutout 2.2.0: rules for coding agents. Add this to your project's AGENTS.md, CLAUDE.md or Cursor rules. Built from https://github.com/gentlycarved-arch/shoutout -->
+<!-- Shoutout 2.3.0: rules for coding agents. Add this to your project's AGENTS.md, CLAUDE.md or Cursor rules. Built from https://github.com/gentlycarved-arch/shoutout -->
 
 When the user shares a link to someone else's tool or work that they're using on the site, mentions a tool they made the site with, or asks to credit, audit or update credits, follow these instructions.
 
@@ -6,7 +6,7 @@ When the user shares a link to someone else's tool or work that they're using on
 
 Shoutout adds a small **Shoutout** button to the bottom of any website. Pressing it fades the page away except for the parts made with someone else's work (a shader behind an image effect, a UI kit's components, a hover from someone's skill), which glow in their own shape, each with a small title linking to the original and "by" its maker; hovering one grows it to show their bio.
 
-- `shoutout.js`: the script, version 2.2.0: download it from https://raw.githubusercontent.com/gentlycarved-arch/shoutout/main/shoutout.js (its version is on its first line)
+- `shoutout.js`: the script, version 2.3.0: download it from https://raw.githubusercontent.com/gentlycarved-arch/shoutout/main/shoutout.js (its version is on its first line)
 - `credits.json`: the list of credits (format in the spec (https://github.com/gentlycarved-arch/shoutout/blob/main/SPEC.md))
 - `data-credit="id"` on the elements each one made
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Package the skill for places other than Claude Code:   npm run build:skill
 //   docs/downloads/shoutout-skill.zip   the skill folder, to upload as a skill in Claude on the web or the desktop app
+//   docs/shoutout.js                    a copy of the script, for the site's examples page
 //   docs/downloads/shoutout-rules.md    the same instructions as plain rules, for agents without skills:
 //                                       add them to a project's AGENTS.md (Codex and others), CLAUDE.md, or Cursor's rules
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
@@ -10,6 +11,9 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const out = root + 'docs/downloads/';
 await mkdir(out, { recursive: true });
+
+// the Shoutout site (docs/) uses the script too, for its examples page
+await writeFile(root + 'docs/shoutout.js', await readFile(root + 'shoutout.js'));
 
 const version = JSON.parse(await readFile(root + 'package.json', 'utf8')).version;
 const repo = 'https://github.com/gentlycarved-arch/shoutout';
