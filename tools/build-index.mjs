@@ -5,7 +5,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { readCredits, creditsOf } from './lib.mjs';
 
-const KEEP = ['id', 'name', 'author', 'authorUrl', 'url', 'license', 'kind', 'note'];
+const KEEP = ['id', 'name', 'author', 'authorUrl', 'about', 'url', 'license', 'kind', 'note'];
 const list = (await readFile(new URL('../registry/sites.txt', import.meta.url), 'utf8'))
   .split('\n').map((l) => l.replace(/#.*/, '').trim()).filter(Boolean);
 

@@ -1,6 +1,6 @@
 # Flowers
 
-Give the makers their flowers. When a website uses someone's shader, UI kit, font or snippet, Flowers shows it: press the Flowers button and the page fades to dark, except for the parts made with other people's tools, each with a thin outline. Hover one to see who made it and a link to the original.
+Give the makers their flowers. When a website uses someone's shader, UI kit, font or snippet, Flowers shows it: press the Credits button and the page fades to dark, except for the parts made with other people's tools, which glow, each with a small title linking to the original. Hover one and its title opens up to show who made it and a line about them.
 
 The credits themselves are kept in an open, plain format, `credits.json`, described below, so anything can read them, not only Flowers.
 
@@ -31,6 +31,7 @@ The `<link rel="credits">` line is recommended even when the script isn't used, 
       "name": "Dollar Bill Texture Shader",
       "author": "Jane Maker",
       "authorUrl": "https://x.com/janemaker",
+      "about": "Makes free shaders and textures for Figma.",
       "url": "https://www.figma.com/community/file/1686908159036705400/dollar-bill-texture-shader",
       "license": "Figma Community",
       "kind": "shader",
@@ -50,6 +51,7 @@ The `<link rel="credits">` line is recommended even when the script isn't used, 
 | `name` | yes | The tool or work's name, as its maker calls it |
 | `author` | no | Who made it: a person, a group or a handle |
 | `authorUrl` | no | Where the author lives online (`http` or `https` only) |
+| `about` | no | A short line about the maker, in their own words: their bio from the profile at `authorUrl`. Up to about 160 characters; the pop-up shows at most three lines |
 | `url` | no | The original: the post, repo, page or file where it was shared (`http` or `https` only) |
 | `license` | no | The license or terms, e.g. `MIT`, `CC BY 4.0`, `Figma Community`, `free to use` |
 | `kind` | no | What it is: `shader`, `ui` (a UI kit, component or interface tool), `font`, `library`, `image`, `icon`, `animation`, `template`, `code`, `music` and so on |
@@ -72,16 +74,16 @@ Credits that make nothing you can point to (a library, a build tool, a font used
 
 ## The button
 
-**Recommended: at the bottom of the page.** By default `flowers.js` puts a small Flowers button centred inside the site's `<footer>`, or at the very end of the page if there's no footer.
+**Recommended: at the bottom of the page.** By default `flowers.js` puts a small Credits button centred inside the site's `<footer>`, or at the very end of the page if there's no footer.
 
-Pressing it fades the page to dark, except for the parts made with credited tools. Each of those keeps a thin outline. Hovering one (tapping it on a phone, or tabbing to it) shows a small pop-up, "Flowers to" the maker,'s name and a link to the original. Credits with nothing to point at on the page (a font, a library) are listed in one line at the bottom. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
+Pressing it fades the page to dark, except for the parts made with credited tools. Those glow softly, each with a small white title (the tool's `name`, linking to the original). Hovering one (tapping it on a phone, or tabbing to it) opens the title up to show "Flowers to" the maker's name and their short bio, if there is one. Credits with nothing to point at on the page (a font, a library) are listed in one line at the bottom. Clicking anywhere on the faded page, pressing the button again, or Esc brings the page back.
 
-The button shows only `name`, `author` and `url` (or `authorUrl` when there's no `url`). The other fields are there for other tools and for anyone reading the file.
+The pop-up shows only `name`, `author`, `about` and `url` (or `authorUrl` when there's no `url`). The other fields are there for other tools and for anyone reading the file.
 
 To choose the place yourself, mark it with `data-flowers-button`:
 
-- on a `<button>` or `<a>`, that element becomes the Flowers button, in the site's own style: `<button data-flowers-button>Flowers</button>`
-- on anything else, the Flowers button is put inside it
+- on a `<button>` or `<a>`, that element becomes the Credits button, in the site's own style: `<button data-flowers-button>Credits</button>`
+- on anything else, the Credits button is put inside it
 
 To float the button in a corner of the window, set `data-position` on the script tag.
 
@@ -94,8 +96,8 @@ Set as attributes on the `<script>` tag:
 | `data-src` | where to find credits.json | see *Where it lives* |
 | `data-position` | `bottom` (in the footer), `bottom-right`, `bottom-left`, `top-right`, `top-left` | `bottom` |
 | `data-theme` | `auto`, `light`, `dark` | `auto` |
-| `data-accent` | the outline colour | white |
-| `data-label` | the button's text | `Flowers` |
+| `data-accent` | the glow colour | white |
+| `data-label` | the button's text | `Credits` |
 | `data-button` | `none` hides the button, for sites that open Flowers from their own code | shown |
 
 To match a site, set these custom properties anywhere in its CSS (usually `:root`, and again for a dark theme):
@@ -104,7 +106,7 @@ To match a site, set these custom properties anywhere in its CSS (usually `:root
 |---|---|---|
 | `--flowers-fade-color` | the colour the page fades to | near-black `#0a0a0a` |
 | `--flowers-fade` | how far it fades, 0 to 1 | `0.82` |
-| `--flowers-accent` | the outlines | white |
+| `--flowers-accent` | the glow | white |
 | `--flowers-bg`, `--flowers-fg` | the button and its text | white and black (dark in dark mode) |
 | `--flowers-popup-bg`, `--flowers-popup-fg`, `--flowers-popup-muted` | the hover pop-ups, their text, and the link | white, black, grey |
 | `--flowers-font`, `--flowers-radius` | the type, and the rounding of the button | Helvetica, 999px |

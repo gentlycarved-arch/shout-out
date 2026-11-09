@@ -31,6 +31,7 @@
         id: String(c.id),
         name: String(c.name),
         author: c.author ? String(c.author) : '',
+        about: c.about ? String(c.about).trim().slice(0, 200) : '',
         url: isUrl(c.url) ? c.url : isUrl(c.authorUrl) ? c.authorUrl : '',
         selectors: [].concat(c.selectors || []).map(String),
       }));
@@ -86,24 +87,29 @@ a { color: inherit; text-decoration: none; }
 
 .fade { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 2147483000; opacity: 0; transition: opacity .4s ease; cursor: pointer; }
 .fade.on { opacity: 1; }
-.box { position: fixed; z-index: 2147483000; pointer-events: none; outline: 1px solid var(--_accent); outline-offset: 3px; border-radius: 2px; animation: in .4s ease both; }
-.box:focus-visible { outline-width: 2px; }
+.box { position: fixed; z-index: 2147483000; pointer-events: none; outline: none; border-radius: 2px; animation: glow .6s ease both;
+  box-shadow: 0 0 18px 2px color-mix(in srgb, var(--_accent) 45%, transparent), 0 0 48px 8px color-mix(in srgb, var(--_accent) 18%, transparent); }
+.box:focus-visible { outline: 1px solid var(--_accent); outline-offset: 3px; }
+@keyframes glow { from { box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent; } }
 .tag {
   position: fixed; z-index: 2147483001; max-width: min(260px, calc(100vw - 16px));
-  display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 8px;
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 0;
   background: var(--flowers-popup-bg, #ffffff); color: var(--flowers-popup-fg, #111111);
-  opacity: 0; visibility: hidden; transform: translateY(3px); transition: opacity .15s, transform .15s, visibility 0s .15s;
+  animation: in .4s ease .1s both;
 }
-.mark.show .tag, .mark:focus-within .tag { opacity: 1; visibility: visible; transform: none; transition: opacity .15s, transform .15s; }
-.tag strong { font-weight: 700; }
-.tag a { color: var(--flowers-popup-muted, #6b6b6b); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tag a:hover, .tag a:focus-visible { color: var(--flowers-popup-fg, #111111); text-decoration: underline; }
+.tag .title { font-weight: 700; color: inherit; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag a.title:hover, .tag a.title:focus-visible { text-decoration: underline; }
+.tag .more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
+.tag .more > div { overflow: hidden; min-height: 0; display: flex; flex-direction: column; gap: 2px; }
+.mark.show .more, .mark:focus-within .more { grid-template-rows: 1fr; }
+.tag .who { color: var(--flowers-popup-muted, #6b6b6b); padding-top: 4px; }
+.tag .about { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 .also { position: fixed; z-index: 2147483001; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 6px 14px; border-radius: var(--_r); background: var(--flowers-popup-bg, #ffffff); color: var(--flowers-popup-muted, #6b6b6b); text-align: center; animation: in .4s ease .08s both; }
 .also a { color: var(--flowers-popup-fg, #111111); }
 .also a:hover { text-decoration: underline; }
 @keyframes in { from { opacity: 0; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-@media (prefers-reduced-motion: reduce) { .fade, .tag, .mark.show .tag { transition: none; } .box, .also { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .fade, .tag .more { transition: none; } .box, .tag, .also { animation: none; } }
 `;
 
   const h = (tag, attrs = {}, ...kids) => {
@@ -144,10 +150,10 @@ a { color: inherit; text-decoration: none; }
   // ---------- the button ----------
   // Recommended: at the bottom of the page (the default, inside the site's footer).
   // An element marked data-flowers-button chooses the place: a <button> or <a> there becomes the button itself,
-  // anything else gets the Flowers button inside it. data-position="bottom-right" etc. floats it in a corner.
+  // anything else gets the Credits button inside it. data-position="bottom-right" etc. floats it in a corner.
 
   function makeButton() {
-    return h('button', { class: 'btn', type: 'button', part: 'button', 'aria-pressed': 'false', onclick: toggle }, opt('label', 'Flowers'));
+    return h('button', { class: 'btn', type: 'button', part: 'button', 'aria-pressed': 'false', onclick: toggle }, opt('label', 'Credits'));
   }
 
   function placeButtons(rootEl) {
@@ -220,10 +226,13 @@ a { color: inherit; text-decoration: none; }
     marks = [];
     for (const credit of credits) {
       for (const el of targetsOf(credit)) {
-        const who = credit.author ? 'Flowers to ' + credit.author : credit.name;
         const box = h('div', { class: 'box', part: 'outline', tabindex: '0', role: 'img', 'aria-label': 'Made with ' + credit.name + (credit.author ? ' by ' + credit.author : '') });
-        const tag = h('div', { class: 'tag', part: 'label' }, h('strong', {}, who),
-          credit.url ? h('a', { href: credit.url, target: '_blank', rel: 'noopener' }, (credit.author ? credit.name : 'Original') + ' ↗') : null);
+        const about = credit.about, link = credit.url;
+        const title = link ? h('a', { class: 'title', href: link, target: '_blank', rel: 'noopener' }, credit.name + ' ↗') : h('span', { class: 'title' }, credit.name);
+        const tag = h('div', { class: 'tag', part: 'label' }, title,
+          credit.author || about ? h('div', { class: 'more' }, h('div', {},
+            credit.author ? h('span', { class: 'who' }, 'Flowers to ' + credit.author) : null,
+            about ? h('span', { class: 'about' }, about) : null)) : null);
         const group = h('div', { class: 'mark' }, box, tag);
         tag.addEventListener('pointerenter', () => hover(mark));
         tag.addEventListener('pointerleave', () => hover(null));
