@@ -79,7 +79,10 @@
   .find li { margin: 0 0 12px; color: var(--fg); font-size: 15px; }
   .find li span { display: block; color: var(--muted); font-size: 13px; }
   /* the invitation to be listed comes first, then the search to look yourself up */
-  footer .add { margin: 0 0 14px; }
+  /* first in line: the invitation, in full ink at reading size; the search link sits under it, quieter */
+  footer .add { margin: 0 0 18px; color: var(--fg); font-size: 16px; line-height: 1.5; }
+  footer .add a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  footer .see { font-size: 14px; }
   @media (prefers-reduced-motion: reduce) { .find, .find > div { transition: none; } }
 </style>
 </head>
