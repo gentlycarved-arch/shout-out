@@ -78,7 +78,8 @@
   .find ul { list-style: none; margin: 8px 0 0; padding: 0; }
   .find li { margin: 0 0 12px; color: var(--fg); font-size: 15px; }
   .find li span { display: block; color: var(--muted); font-size: 13px; }
-  .find .add { margin: 20px 0 0; text-align: left; }
+  /* the invitation to be listed comes first, then the search to look yourself up */
+  footer .add { margin: 0 0 14px; }
   @media (prefers-reduced-motion: reduce) { .find, .find > div { transition: none; } }
 </style>
 </head>
@@ -154,6 +155,7 @@ cp -R shoutout/skills/shoutout ~/.claude/skills/</code></pre>
   <pre class="wrap"><code>Read https://raw.githubusercontent.com/gentlycarved-arch/shout-out/main/docs/downloads/shoutout-rules.md and follow it to credit the tools I use on this site.</code></pre>
 </main>
 <footer>
+  <p class="add">Use Shoutout on your site? <a href="https://github.com/gentlycarved-arch/shout-out/issues/new?template=add-site.yml">Add it to the list</a> so makers can find it.</p>
   <button class="see" type="button" aria-expanded="false" aria-controls="find">See who gave you a shoutout</button>
   <div class="find" id="find">
     <div inert>
@@ -163,7 +165,6 @@ cp -R shoutout/skills/shoutout ~/.claude/skills/</code></pre>
       </form>
       <p class="status" id="status" aria-live="polite"></p>
       <ul id="results"></ul>
-      <p class="add">Use Shoutout on your site? <a href="https://github.com/gentlycarved-arch/shout-out/issues/new?template=add-site.yml">Add it to the list</a> so makers can find it.</p>
     </div>
   </div>
 </footer>
