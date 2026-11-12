@@ -58,15 +58,10 @@
   footer { width: min(35rem, 100% - 32px); margin: 0 auto; padding: 0 0 48px; color: var(--muted); font-size: 13px; }
   footer a { color: inherit; }
 
-  /* "See who gave you a shoutout": the search opens right below, smoothly */
-  .see { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-  .see:hover, .see[aria-expanded="true"] { color: var(--fg); }
-  .find { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .6s cubic-bezier(.2, .8, .2, 1); }
-  .find.open { grid-template-rows: 1fr; }
-  .find > div { overflow: hidden; min-height: 0; opacity: 0; transition: opacity .3s ease; }
-  .find.open > div { opacity: 1; transition: opacity .6s cubic-bezier(.2, .8, .2, 1); }
+  /* "See who gave you a shoutout": a heading, like the page's others, with the search right under it */
+  footer h2.see { margin: 44px 0 0; color: var(--fg); font-size: 16px; }
   /* one hairline under the whole field, with Search sitting on it at the end, its text level with the field's */
-  .find form { display: flex; align-items: baseline; gap: 16px; margin-top: 20px; border-bottom: 1px solid var(--line); }
+  .find form { display: flex; align-items: baseline; gap: 16px; margin-top: 10px; border-bottom: 1px solid var(--line); }
   .find form:focus-within { border-bottom-color: var(--fg); }
   .find input { flex: 1; min-width: 0; font: inherit; font-size: 16px; color: var(--fg); background: none; border: 0; border-radius: 0; padding: 6px 0; line-height: 1.4; outline: none; -webkit-appearance: none; appearance: none; }
   .find input::placeholder { color: var(--muted); }
@@ -79,11 +74,9 @@
   .find li { margin: 0 0 12px; color: var(--fg); font-size: 15px; }
   .find li span { display: block; color: var(--muted); font-size: 13px; }
   /* the invitation to be listed comes first, then the search to look yourself up */
-  /* first in line: the invitation, in full ink at reading size; the search link sits under it, quieter */
+  /* first in line: the invitation, in full ink at reading size; then the search, under its own heading */
   footer .add { margin: 0 0 18px; color: var(--fg); font-size: 16px; line-height: 1.5; }
   footer .add a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
-  footer .see { font-size: 14px; }
-  @media (prefers-reduced-motion: reduce) { .find, .find > div { transition: none; } }
 </style>
 </head>
 <body>
@@ -159,44 +152,23 @@ cp -R shoutout/skills/shoutout ~/.claude/skills/</code></pre>
 </main>
 <footer>
   <p class="add">Use Shoutout on your site? <a href="https://github.com/gentlycarved-arch/shout-out/issues/new?template=add-site.yml">Add it to the list</a> so makers can find it.</p>
-  <button class="see" type="button" aria-expanded="false" aria-controls="find">See who gave you a shoutout</button>
+  <h2 class="see">See who gave you a shoutout</h2>
   <div class="find" id="find">
-    <div inert>
-      <form role="search">
-        <input id="q" type="search" placeholder="@handle, name or link" aria-label="Your name, @handle or a link to your profile or tool" autocomplete="off">
-        <button type="submit">Search</button>
-      </form>
-      <p class="status" id="status" aria-live="polite"></p>
-      <ul id="results"></ul>
-    </div>
+    <form role="search">
+      <input id="q" type="search" placeholder="@handle, name or link" aria-label="Your name, @handle or a link to your profile or tool" autocomplete="off">
+      <button type="submit">Search</button>
+    </form>
+    <p class="status" id="status" aria-live="polite"></p>
+    <ul id="results"></ul>
   </div>
 </footer>
 <script type="module">
   import { matches } from './match.js';
   const $ = (id) => document.getElementById(id);
-  const see = document.querySelector('.see'), find = $('find'), inner = find.firstElementChild;
-  let index = null;
-  see.addEventListener('click', () => {
-    const open = see.getAttribute('aria-expanded') !== 'true';
-    see.setAttribute('aria-expanded', String(open));
-    find.classList.toggle('open', open);
-    inner.inert = !open;
-    if (!open) return;
-    $('q').focus({ preventScroll: true });
-    // the page scrolls down along with the search as it opens, frame by frame, so all of it ends up in view
-    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      const until = performance.now() + 700, footer = document.querySelector('footer');
-      const follow = () => {
-        const over = footer.getBoundingClientRect().bottom + 24 - innerHeight;
-        if (over > 0) scrollBy(0, Math.ceil(over));
-        if (performance.now() < until) requestAnimationFrame(follow);
-      };
-      requestAnimationFrame(follow);
-    } else find.scrollIntoView({ block: 'nearest' });
-    index ??= fetch('index.json').then((r) => r.json()).catch(() => ({ sites: [] })).then((d) => {
-      $('status').textContent = d.sites.length ? d.sites.length + (d.sites.length === 1 ? ' site is' : ' sites are') + ' listed.' : 'No sites are listed yet.';
-      return d;
-    });
+  const find = $('find');
+  const index = fetch('index.json').then((r) => r.json()).catch(() => ({ sites: [] })).then((d) => {
+    $('status').textContent = d.sites.length ? d.sites.length + (d.sites.length === 1 ? ' site is' : ' sites are') + ' listed.' : 'No sites are listed yet.';
+    return d;
   });
   find.querySelector('form').addEventListener('submit', async (e) => {
     e.preventDefault();
