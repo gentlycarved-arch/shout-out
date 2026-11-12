@@ -2,6 +2,7 @@
 // Used by .github/workflows/add-site.yml: read the site address from an "Add my site" issue (in $BODY),
 // check that it publishes credits, and add it to registry/sites.txt. Prints GitHub Actions outputs.
 //   BODY="### Site address\n\nhttps://example.com" node tools/add-site.mjs
+//   SHOUTOUT_LOCAL=1 BODY="http://localhost:8000" node tools/add-site.mjs   (to test with a site on your machine)
 
 import { readFile, appendFile } from 'node:fs/promises';
 import { readCredits, creditsOf } from './lib.mjs';
@@ -17,7 +18,8 @@ if (!found) {
 let site;
 try {
   const u = new URL(/^https?:\/\//i.test(found[0]) ? found[0] : 'https://' + found[0]);
-  if (!/^https?:$/.test(u.protocol) || /^(localhost|127\.|10\.|192\.168\.|0\.)/.test(u.hostname)) throw new Error('not a public address');
+  // SHOUTOUT_LOCAL=1 lets a local address through, for trying the whole flow on your own machine first
+  if (!/^https?:$/.test(u.protocol) || (!process.env.SHOUTOUT_LOCAL && /^(localhost|127\.|10\.|192\.168\.|0\.)/.test(u.hostname))) throw new Error('not a public address');
   site = u.origin + u.pathname.replace(/\/+$/, '');
 } catch (e) {
   out('added', 'no'); out('done', 'no'); out('message', `That doesn't look like a public web address (${e.message}).`);
