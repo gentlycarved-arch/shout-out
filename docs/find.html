@@ -37,20 +37,23 @@
   import { matches } from './match.js';
   const $ = (id) => document.getElementById(id);
   const index = fetch('index.json').then((r) => r.json()).catch(() => ({ sites: [] }));
-  index.then((d) => { $('status').textContent = d.sites.length ? d.sites.length + ' sites listed' + (d.generated ? ', updated ' + new Date(d.generated).toLocaleDateString() : '') + '.' : 'No sites are listed yet.'; });
+  const listed = (d) => d.sites.length ? d.sites.length + (d.sites.length === 1 ? ' site' : ' sites') + ' listed' + (d.generated ? ', updated ' + new Date(d.generated).toLocaleDateString() : '') + '.' : 'No sites are listed yet.';
+  index.then((d) => { $('status').textContent = listed(d); });
   $('f').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const q = $('q').value, d = await index, out = $('results');
+    const q = $('q').value.trim(), d = await index, out = $('results');
     out.textContent = '';
-    let n = 0;
+    if (!q) { $('status').textContent = listed(d); return; }
+    const sites = new Set();
     for (const s of d.sites) for (const c of s.credits) {
       if (!matches(c, q)) continue;
-      n++;
+      sites.add(s.site);
       const li = document.createElement('li'), a = document.createElement('a'), span = document.createElement('span');
       a.href = /^https?:\/\//.test(s.site) ? s.site : '#'; a.textContent = s.name || s.site; a.target = '_blank'; a.rel = 'noopener';
       span.textContent = c.name + (c.author ? ' by ' + c.author : '') + (c.note ? ' · ' + c.note : '');
       li.append(a, span); out.append(li);
     }
+    const n = sites.size;
     $('status').textContent = n ? n + (n === 1 ? ' site gave' : ' sites gave') + ' you a shoutout.' : 'No shoutouts found for that yet.';
   });
 </script>

@@ -9,7 +9,7 @@ import { readCredits, creditsOf } from './lib.mjs';
 
 const out = (k, v) => console.log(`${k}=${String(v).replace(/[\r\n]+/g, ' ')}`);
 const body = process.env.BODY || process.argv[2] || '';
-const found = body.match(/https?:\/\/[^\s<>()"'`]+/i) || body.match(/\b[\w-]+(\.[\w-]+)+\.[a-z]{2,}(\/[^\s<>()"'`]*)?/i);
+const found = body.match(/https?:\/\/[^\s<>()"'`]+/i) || body.match(/\b[\w-]+(\.[\w-]+)*\.[a-z]{2,}\b(\/[^\s<>()"'`]*)?/i);
 if (!found) {
   out('added', 'no'); out('done', 'no');
   out('message', "I couldn't find a site address in this issue. Edit it to include one, like https://example.com, and it'll be checked again.");
@@ -17,7 +17,8 @@ if (!found) {
 }
 let site;
 try {
-  const u = new URL(/^https?:\/\//i.test(found[0]) ? found[0] : 'https://' + found[0]);
+  const typed = found[0].replace(/[.,;:!?)\]'"]+$/, '');   // a sentence's own punctuation isn't part of the address
+  const u = new URL(/^https?:\/\//i.test(typed) ? typed : 'https://' + typed);
   // SHOUTOUT_LOCAL=1 lets a local address through, for trying the whole flow on your own machine first
   if (!/^https?:$/.test(u.protocol) || (!process.env.SHOUTOUT_LOCAL && /^(localhost|127\.|10\.|192\.168\.|0\.)/.test(u.hostname))) throw new Error('not a public address');
   site = u.origin + u.pathname.replace(/\/+$/, '');
@@ -28,7 +29,9 @@ try {
 
 const file = new URL('../registry/sites.txt', import.meta.url);
 const listed = (await readFile(file, 'utf8')).split('\n').map((l) => l.replace(/#.*/, '').trim().replace(/\/+$/, ''));
-if (listed.includes(site)) {
+// the same site with or without www., and on http or https, is one site
+const same = (a) => a.replace(/^https?:\/\/(www\.)?/i, '').toLowerCase();
+if (listed.some((l) => l && same(l) === same(site))) {
   out('added', 'no'); out('done', 'yes'); out('site', site); out('message', `${site} is already on the list.`);
   process.exit(0);
 }
