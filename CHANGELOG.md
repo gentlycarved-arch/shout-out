@@ -2,6 +2,10 @@
 
 Shoutout follows [semantic versioning](https://semver.org): within a major version, a release never breaks a site that worked with an earlier one. The `credits.json` format has its own version; `"credit": "1.0"` files are read by every release.
 
+## 2.6.0
+
+- **A GitHub link says GitHub.** When a credit's `url` is on GitHub, its pop-up ends, on hover, with an underlined "GitHub" link to it, under the line about the tool.
+
 ## 2.5.0
 
 - **Credit by file.** A credit can list the files it covers (`"files": ["/textures/paper-*.png", "images.unsplash.com/photo-123*"]`), and Shoutout finds every place the page uses them: `<img>` and srcset, `<picture>`, video posters, SVG images, and CSS backgrounds, masks and border images, including `::before` and `::after` layers.

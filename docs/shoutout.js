@@ -1,8 +1,10 @@
-/*! Shoutout 2.5.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
+/*! Shoutout 2.6.0 · shoutout designers & makers on your website: a button that fades a website back to the parts made with other people's tools · MIT */
 (() => {
   'use strict';
   if (window.Shoutout) return;
-  const VERSION = '2.5.0';
+  const VERSION = '2.6.0';
+  // the name of the place a credit lives, when it's one people know by name: a GitHub link reads "GitHub"
+  const sourceOf = (url) => { try { return /(^|\.)github\.com$/i.test(new URL(url).hostname) ? 'GitHub' : ''; } catch { return ''; } };
 
   const script = document.currentScript;
   const opt = (name, fallback) => (script && script.getAttribute('data-' + name)) || fallback;
@@ -220,6 +222,8 @@ a { color: inherit; text-decoration: none; }
 .tag .by { color: var(--_pop-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tag .about { padding-top: 4px; }
 .tag .about { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+/* where it lives, by name: a credit kept on GitHub links there with a plain, underlined "GitHub" */
+.tag .source, .list .card .source, .card .source { width: max-content; padding-top: 4px; color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
 .mark.dim .tag { display: none; }
 /* a pack (more than three parts from one credit): every part glows, only the one you're on shows its pop-up */
 .mark.quiet .tag { display: none; }
@@ -697,11 +701,12 @@ a { color: inherit; text-decoration: none; }
       const pack = els.length > 3;
       for (const el of els) {
         const box = h('div', { class: 'box', part: 'outline', tabindex: '0', role: 'img', 'aria-label': 'Made with ' + credit.name + (credit.author ? ' by ' + credit.author : '') });
-        const about = credit.about || credit.note, link = credit.url;
+        const about = credit.about || credit.note, link = credit.url, where = sourceOf(link);
         const title = link ? h('a', { class: 'title', href: link, target: '_blank', rel: 'noopener' }, h('span', {}, credit.name)) : h('span', { class: 'title' }, h('span', {}, credit.name));
         const by = credit.author ? h('span', { class: 'by' }, h('span', {}, 'by ' + credit.author)) : null;
         const tag = h('div', { class: 'tag', part: 'label' }, title, by,
-          about ? h('div', { class: 'more' }, h('div', {}, h('span', { class: 'about' }, about))) : null);
+          about || where ? h('div', { class: 'more' }, h('div', {}, about ? h('span', { class: 'about' }, about) : null,
+            where ? h('a', { class: 'source', href: link, target: '_blank', rel: 'noopener' }, where) : null)) : null);
         const group = h('div', { class: pack ? 'mark quiet' : 'mark' }, box, tag);
         tag.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') hover(mark); });
         tag.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') hover(null); });
