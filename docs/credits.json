@@ -1,0 +1,18 @@
+{
+  "credit": "1.0",
+  "site": "Shoutout",
+  "credits": [
+    {
+      "id": "wisp",
+      "name": "Wisp",
+      "author": "Nomanjack",
+      "authorUrl": "https://iamnoman.com/",
+      "authorLinks": ["https://github.com/nomanjack"],
+      "url": "https://github.com/nomanjack/wisp",
+      "license": "MIT",
+      "kind": "code",
+      "note": "Its WebGL fade softens the edges of the doves' sky into the page.",
+      "selectors": [".doves"]
+    }
+  ]
+}

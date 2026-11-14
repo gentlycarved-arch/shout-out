@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Shoutout</title>
+<link rel="credits" href="credits.json">
 <meta name="description" content="Credit the designers and makers behind your website, right on the page.">
 <link rel="preload" href="fonts/HedvigLettersSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <style>
@@ -16,8 +17,11 @@
   main { width: min(35rem, 100% - 32px); margin: 0 auto; padding: 72px 0 96px; }
 
 
-  .doves { display: block; width: 140px; height: 140px; margin: 0 auto 4px; }
-  .doves img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  /* the doves, played through Wisp (wisp/gpu.js): its shader fades the video's edges softly into the page */
+  .doves { position: relative; display: block; width: 180px; height: 180px; margin: 0 auto 4px; }
+  .doves video, .doves canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+  .doves.gpu-film video { opacity: 0; }
+  .doves video { aspect-ratio: auto; border: 0; border-radius: 0; background: none; }   /* not the example video's frame */
   h1 { font-size: 1.25em; font-weight: 400; line-height: 1.3; margin: 0; text-align: center; }
   .lede { color: var(--muted); text-align: center; margin: 2px 0 28px; }
   p { margin: 0 0 1.1em; text-wrap: pretty; }   /* left-aligned, with a natural right edge: easy to read */
@@ -57,6 +61,9 @@
 
   footer { width: min(35rem, 100% - 32px); margin: 0 auto; padding: 0 0 48px; color: var(--muted); font-size: 13px; }
   footer a { color: inherit; }
+  /* the page's own Shoutout button, last in the footer, a quiet link like the rest */
+  footer .shoutout-link { display: block; margin: 48px 0 0; font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  footer .shoutout-link:hover, footer .shoutout-link[aria-pressed="true"] { color: var(--fg); }
 
   /* "See who gave you a shoutout": a heading, like the page's others, with the search right under it */
   footer h2.see { margin: 44px 0 0; color: var(--fg); font-size: 16px; }
@@ -81,7 +88,7 @@
 </head>
 <body>
 <main>
-  <div class="doves"><img src="media/doves-ink.webp" width="500" height="500" alt="Three doves in flight"></div>
+  <div class="doves"><video src="media/doves-sky.mp4" width="500" height="500" muted autoplay loop playsinline preload="auto" aria-label="Three doves in flight"></video></div>
 
 
   <h1>Shoutout!</h1>
@@ -161,7 +168,23 @@ cp -R shoutout/skills/shoutout ~/.claude/skills/</code></pre>
     <p class="status" id="status" aria-live="polite"></p>
     <ul id="results"></ul>
   </div>
+  <button class="shoutout-link" type="button" data-shoutout-button>Shoutout</button>
 </footer>
+<script src="shoutout.js" defer></script>
+<script type="module">
+  // Wisp: the doves video drawn through its soft-edged fade; without WebGL2 the plain video shows
+  import { createGpuFilm } from './wisp/gpu.js';
+  const host = document.querySelector('.doves'), video = host.querySelector('video');
+  const film = createGpuFilm(video, host);
+  if (film) {
+    film.enable(true);
+    const go = () => (video.paused ? film.pause() : film.play());
+    video.addEventListener('playing', go); video.addEventListener('pause', go);
+    addEventListener('resize', () => film.resize());
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) video.pause();
+    go();
+  }
+</script>
 <script type="module">
   import { matches } from './match.js';
   const $ = (id) => document.getElementById(id);
