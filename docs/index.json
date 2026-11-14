@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-14T18:30:11.121Z",
+ "generated": "2026-11-14T19:01:18.348Z",
  "sites": [
   {
    "site": "https://gentlycarved.com/shout-out/",
@@ -13,7 +13,7 @@
      "url": "https://github.com/nomanjack/wisp",
      "license": "MIT",
      "kind": "code",
-     "note": "Its WebGL fade softens the edges of the doves' sky into the page.",
+     "note": "A video player that softly fades a video’s edges into the page, here melting the doves’ sky into white.",
      "authorLinks": [
       "https://github.com/nomanjack"
      ]
