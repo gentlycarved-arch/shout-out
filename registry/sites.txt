@@ -1,3 +1,4 @@
 # Sites that publish credits.json and want creators to find them.
 # One address per line. To add yours, open a pull request adding a line here.
 # Each night the list is read and docs/index.json is rebuilt; creators search it at the project's search page.
+https://gentlycarved.com/shout-out
