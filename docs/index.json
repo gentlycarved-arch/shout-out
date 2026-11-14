@@ -1,4 +1,24 @@
 {
- "generated": "2026-11-09T12:58:40.344Z",
- "sites": []
+ "generated": "2026-11-14T18:30:11.121Z",
+ "sites": [
+  {
+   "site": "https://gentlycarved.com/shout-out/",
+   "name": "Shoutout",
+   "credits": [
+    {
+     "id": "wisp",
+     "name": "Wisp",
+     "author": "Nomanjack",
+     "authorUrl": "https://iamnoman.com/",
+     "url": "https://github.com/nomanjack/wisp",
+     "license": "MIT",
+     "kind": "code",
+     "note": "Its WebGL fade softens the edges of the doves' sky into the page.",
+     "authorLinks": [
+      "https://github.com/nomanjack"
+     ]
+    }
+   ]
+  }
+ ]
 }
